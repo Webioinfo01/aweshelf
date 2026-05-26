@@ -141,7 +141,7 @@ class AweSwitchTests(unittest.TestCase):
 
     def test_build_resume_command_codex(self):
         cmd = build_resume_command("codex", None, "session-123")
-        self.assertEqual(cmd, ["codex", "--resume", "session-123"])
+        self.assertEqual(cmd, ["codex", "resume", "session-123"])
 
 
 if __name__ == "__main__":

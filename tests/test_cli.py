@@ -1,5 +1,6 @@
 """Tests for CLI commands."""
 
+import os
 import sys
 import tempfile
 import unittest
@@ -13,6 +14,12 @@ from aweshelf import cli as aweshelf
 
 
 class CliTests(unittest.TestCase):
+    def _run_with_empty_config(self, args):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "bookmarks.json"
+            env = {"AWESHELF_CONFIG": str(path)}
+            return CliRunner(env=env).invoke(aweshelf.cli, args)
+
     def test_help_layout(self):
         result = CliRunner().invoke(aweshelf.cli, ["-h"])
         self.assertEqual(result.exit_code, 0)
@@ -38,42 +45,42 @@ class CliTests(unittest.TestCase):
         self.assertIn(expected, result.output)
 
     def test_list_empty(self):
-        result = CliRunner().invoke(aweshelf.cli, ["list"])
+        result = self._run_with_empty_config(["list"])
         self.assertEqual(result.exit_code, 0)
         self.assertIn("No bookmarks found.", result.output)
 
     def test_recent_empty(self):
-        result = CliRunner().invoke(aweshelf.cli, ["recent"])
+        result = self._run_with_empty_config(["recent"])
         self.assertEqual(result.exit_code, 0)
         self.assertIn("No bookmarks found.", result.output)
 
     def test_search_empty(self):
-        result = CliRunner().invoke(aweshelf.cli, ["search", "nonexistent"])
+        result = self._run_with_empty_config(["search", "nonexistent"])
         self.assertEqual(result.exit_code, 0)
         self.assertIn("No bookmarks found.", result.output)
 
     def test_show_not_found(self):
-        result = CliRunner().invoke(aweshelf.cli, ["show", "bkm_nope"])
+        result = self._run_with_empty_config(["show", "bkm_nope"])
         self.assertNotEqual(result.exit_code, 0)
         self.assertIn("not found", result.output)
 
     def test_edit_not_found(self):
-        result = CliRunner().invoke(aweshelf.cli, ["edit", "bkm_nope", "-t", "new"])
+        result = self._run_with_empty_config(["edit", "bkm_nope", "-t", "new"])
         self.assertNotEqual(result.exit_code, 0)
         self.assertIn("not found", result.output)
 
     def test_rm_not_found(self):
-        result = CliRunner().invoke(aweshelf.cli, ["rm", "bkm_nope"])
+        result = self._run_with_empty_config(["rm", "bkm_nope"])
         self.assertNotEqual(result.exit_code, 0)
         self.assertIn("not found", result.output)
 
     def test_resume_not_found(self):
-        result = CliRunner().invoke(aweshelf.cli, ["resume", "bkm_nope"])
+        result = self._run_with_empty_config(["resume", "bkm_nope"])
         self.assertNotEqual(result.exit_code, 0)
         self.assertIn("not found", result.output)
 
     def test_edit_no_fields(self):
-        result = CliRunner().invoke(aweshelf.cli, ["edit", "bkm_test"])
+        result = self._run_with_empty_config(["edit", "bkm_test"])
         self.assertNotEqual(result.exit_code, 0)
 
     def test_package_entry_point(self):

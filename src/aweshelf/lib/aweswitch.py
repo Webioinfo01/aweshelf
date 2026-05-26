@@ -72,6 +72,6 @@ def profile_exists(profile_name: str) -> bool:
 def build_resume_command(provider: str, profile_name: Optional[str], session_id: str, raw: bool = False) -> list[str]:
     if raw or not profile_name:
         if provider == "codex":
-            return ["codex", "--resume", session_id]
+            return ["codex", "resume", session_id]
         return ["claude", "--resume", session_id]
     return ["aweswitch", profile_name, "--resume", session_id]

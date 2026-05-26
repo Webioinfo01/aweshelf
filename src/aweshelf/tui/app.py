@@ -14,9 +14,7 @@ class BookmarkBrowser(App):
 
     BINDINGS = [
         Binding("q", "quit", "Quit"),
-        Binding("enter", "resume", "Resume"),
-        Binding("/", "search", "Search"),
-        Binding("escape", "clear_search", "Clear"),
+        Binding("r", "resume", "Resume"),
     ]
 
     CSS = """
@@ -79,6 +77,17 @@ class BookmarkBrowser(App):
             if b.id == bookmark_id:
                 self._selected = b
                 self._update_detail(b)
+                self.exit(result=b)
+                return
+
+    def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
+        if event.row_key is None:
+            return
+        bookmark_id = event.row_key.value
+        for b in self._bookmarks:
+            if b.id == bookmark_id:
+                self._selected = b
+                self._update_detail(b)
                 break
 
     def _update_detail(self, b: Bookmark) -> None:
@@ -97,9 +106,3 @@ class BookmarkBrowser(App):
     def action_resume(self) -> None:
         if self._selected:
             self.exit(result=self._selected)
-
-    def action_search(self) -> None:
-        pass
-
-    def action_clear_search(self) -> None:
-        self._load_data()

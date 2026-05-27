@@ -7,7 +7,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 try:
-    from aweshelf.tui.app import BookmarkBrowser
+    from aweshelf.tui.app import BookmarkBrowser, ConfirmScreen, EditScreen
 except ImportError:
     BookmarkBrowser = None
 
@@ -16,7 +16,7 @@ except ImportError:
 class BrowseTests(unittest.TestCase):
     def test_help_binding_is_available(self):
         keys = {binding.key for binding in BookmarkBrowser.BINDINGS}
-        self.assertIn("?", keys)
+        self.assertIn("question_mark", keys)
 
     def test_empty_message_is_actionable(self):
         self.assertIn("aweshelf bookmark", BookmarkBrowser.EMPTY_MESSAGE)
@@ -33,6 +33,8 @@ class BrowseTests(unittest.TestCase):
         self.assertIn("/", BookmarkBrowser.HELP_TEXT)
         self.assertIn("Esc", BookmarkBrowser.HELP_TEXT)
         self.assertIn("Enter", BookmarkBrowser.HELP_TEXT)
+        self.assertIn("e", BookmarkBrowser.HELP_TEXT)
+        self.assertIn("r", BookmarkBrowser.HELP_TEXT)
         self.assertIn("q", BookmarkBrowser.HELP_TEXT)
 
     def test_resize_bindings_exist(self):
@@ -43,6 +45,28 @@ class BrowseTests(unittest.TestCase):
     def test_drag_handle_class_exists(self):
         from aweshelf.tui.app import DragHandle
         self.assertFalse(DragHandle.can_focus)
+
+    def test_edit_binding_is_available(self):
+        keys = {binding.key for binding in BookmarkBrowser.BINDINGS}
+        self.assertIn("e", keys)
+
+    def test_remove_binding_is_available(self):
+        keys = {binding.key for binding in BookmarkBrowser.BINDINGS}
+        self.assertIn("r", keys)
+
+
+@unittest.skipIf(BookmarkBrowser is None, "textual is not installed")
+class EditScreenTests(unittest.TestCase):
+    def test_has_save_and_cancel_bindings(self):
+        keys = {binding.key for binding in EditScreen.BINDINGS}
+        self.assertIn("escape", keys)
+
+
+@unittest.skipIf(BookmarkBrowser is None, "textual is not installed")
+class ConfirmScreenTests(unittest.TestCase):
+    def test_has_escape_binding(self):
+        keys = {binding.key for binding in ConfirmScreen.BINDINGS}
+        self.assertIn("escape", keys)
 
 
 if __name__ == "__main__":

@@ -3,14 +3,21 @@
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
-from textual.widgets import DataTable, Footer, Header, Input, Static
+from textual.screen import Screen
+from textual.widgets import Button, DataTable, Footer, Header, Input, Static
 
-from aweshelf.lib.store import load_bookmarks
+from aweshelf.lib.store import load_bookmarks, remove_bookmark, update_bookmark
 from aweshelf.types import Bookmark
 
 SIDEBAR_FRAC = 60
 DETAIL_FRAC = 40
 MIN_FRAC = 10
+
+EDIT_FIELDS = [
+    ("title", "Title"),
+    ("category", "Category"),
+    ("aweswitch_profile", "Profile"),
+]
 
 
 class DragHandle(Static):
@@ -52,6 +59,122 @@ class DragHandle(Static):
             self.release_mouse()
 
 
+class EditScreen(Screen):
+    """Inline edit screen for bookmark fields."""
+
+    BINDINGS = [
+        Binding("escape", "cancel", "Cancel"),
+    ]
+
+    CSS = """
+    #edit-title {
+        text-style: bold;
+        color: $accent;
+        margin: 1 0;
+    }
+    #edit-fields {
+        height: auto;
+        margin: 1 0;
+    }
+    .edit-label {
+        color: $text-muted;
+        margin-top: 1;
+    }
+    #edit-actions {
+        height: auto;
+        margin-top: 1;
+    }
+    .btn {
+        min-width: 10;
+        margin-right: 1;
+    }
+    """
+
+    def __init__(self, bookmark: Bookmark):
+        super().__init__()
+        self._bookmark = bookmark
+        self._changes: dict[str, str] = {}
+
+    def compose(self) -> ComposeResult:
+        yield Static(f"Editing: {self._bookmark.title}", id="edit-title")
+        with Vertical(id="edit-fields"):
+            for attr, label in EDIT_FIELDS:
+                current = getattr(self._bookmark, attr) or ""
+                yield Static(f"{label}:", classes="edit-label")
+                yield Input(value=current, id=f"edit-{attr}", placeholder=f"Current: {current or '(empty)'}")
+        with Horizontal(id="edit-actions"):
+            yield Button("Save", variant="success", id="save-btn", classes="btn")
+            yield Button("Cancel", id="cancel-btn", classes="btn")
+        yield Footer()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "save-btn":
+            self._collect_and_save()
+        elif event.button.id == "cancel-btn":
+            self.dismiss()
+
+    def action_cancel(self) -> None:
+        self.dismiss()
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        self._collect_and_save()
+
+    def _collect_and_save(self) -> None:
+        for attr, _ in EDIT_FIELDS:
+            inp = self.query_one(f"#edit-{attr}", Input)
+            new_val = inp.value.strip()
+            old_val = getattr(self._bookmark, attr) or ""
+            if new_val and new_val != old_val:
+                self._changes[attr] = new_val
+        if not self._changes:
+            self.dismiss()
+            return
+        self.dismiss(self._changes)
+
+
+class ConfirmScreen(Screen):
+    """Confirmation prompt for destructive actions."""
+
+    BINDINGS = [
+        Binding("escape", "cancel", "No"),
+    ]
+
+    CSS = """
+    #confirm-msg {
+        margin: 1 0;
+        text-style: bold;
+    }
+    #confirm-actions {
+        height: auto;
+        margin-top: 1;
+    }
+    .btn {
+        min-width: 10;
+        margin-right: 1;
+    }
+    """
+
+    def __init__(self, message: str):
+        super().__init__()
+        self._message = message
+
+    def compose(self) -> ComposeResult:
+        yield Static(self._message, id="confirm-msg")
+        with Horizontal(id="confirm-actions"):
+            yield Button("Yes", variant="error", id="yes-btn", classes="btn")
+            yield Button("No", id="no-btn", classes="btn")
+        yield Footer()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "yes-btn":
+            self.dismiss(True)
+        elif event.button.id == "no-btn":
+            self.dismiss(False)
+
+    def action_cancel(self) -> None:
+        self.dismiss(False)
+
+
 class BookmarkBrowser(App):
     """Browse and select bookmarks."""
 
@@ -60,7 +183,8 @@ class BookmarkBrowser(App):
         "/      Filter bookmarks",
         "Esc    Clear filter / return to table",
         "Enter  Resume selected bookmark",
-        "r      Resume selected bookmark",
+        "e      Edit bookmark",
+        "r      Remove bookmark",
         "?      Show this help",
         "q      Quit",
         "[ / ]  Shrink / grow sidebar",
@@ -69,8 +193,9 @@ class BookmarkBrowser(App):
     BINDINGS = [
         Binding("enter", "resume", "Resume", show=False),
         Binding("q", "quit", "Quit"),
-        Binding("r", "resume", "Resume"),
-        Binding("?", "help", "Help"),
+        Binding("e", "edit", "Edit"),
+        Binding("r", "remove", "Remove"),
+        Binding("question_mark", "help", "Help", show=False),
         Binding("slash", "focus_search", "Filter", show=False),
         Binding("escape", "clear_search", "Clear", show=False),
         Binding("[", "resize_sidebar(-5)", "Shrink sidebar", show=False),
@@ -131,6 +256,10 @@ class BookmarkBrowser(App):
         table.add_columns("ID", "PROVIDER", "TITLE", "CATEGORY", "PROFILE")
         table.cursor_type = "row"
         self._load_data()
+        if self._bookmarks:
+            first = self._bookmarks[0]
+            self._selected = first
+            self._update_detail(first)
 
     def _matches_filter(self, b: Bookmark) -> bool:
         if not self._filter:
@@ -177,7 +306,7 @@ class BookmarkBrowser(App):
             if b.id == bookmark_id:
                 self._selected = b
                 self._update_detail(b)
-                self.exit(result=b)
+                self.action_resume()
                 return
 
     def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
@@ -206,6 +335,39 @@ class BookmarkBrowser(App):
     def action_resume(self) -> None:
         if self._selected:
             self.exit(result=self._selected)
+
+    def action_edit(self) -> None:
+        if not self._selected:
+            return
+
+        def on_edit_result(result) -> None:
+            if result:
+                update_bookmark(self._selected.id, **result)
+                self._load_data()
+                # Re-select the updated bookmark
+                for b in self._bookmarks:
+                    if b.id == self._selected.id:
+                        self._selected = b
+                        self._update_detail(b)
+                        break
+
+        self.push_screen(EditScreen(self._selected), on_edit_result)
+
+    def action_remove(self) -> None:
+        if not self._selected:
+            return
+        b = self._selected
+
+        def on_confirm(result) -> None:
+            if result:
+                remove_bookmark(b.id)
+                self._selected = None
+                self.query_one("#detail-title", Static).update(f"Removed {b.id}")
+                self.query_one("#detail-body", Static).update("")
+                self._load_data()
+
+        msg = f"Remove bookmark {b.id} ({b.title})?"
+        self.push_screen(ConfirmScreen(msg), on_confirm)
 
     def action_resize_sidebar(self, delta: int) -> None:
         total = SIDEBAR_FRAC + DETAIL_FRAC

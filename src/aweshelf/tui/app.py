@@ -6,7 +6,7 @@ from rich.text import Text
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
-from textual.widgets import DataTable, Footer, Header, Input, Static
+from textual.widgets import DataTable, Header, Input, Static
 
 from aweshelf.lib.store import load_bookmarks, remove_bookmark, update_bookmark
 from aweshelf.types import Bookmark
@@ -20,18 +20,27 @@ SORT_ORDER = ["cat_id", "id"]
 CAT_KEY_PREFIX = "__cat__"
 ALL_COLUMNS = ["ID", "PROVIDER", "TITLE", "CATEGORY", "PROFILE", "SESSION"]
 CATEGORY_COLUMNS = ["ID", "PROVIDER", "TITLE", "PROFILE", "SESSION"]
+EDITABLE_ATTRS_ALL = ["title", "category", "aweswitch_profile"]
+EDITABLE_ATTRS_CATEGORY = ["title", "aweswitch_profile"]
+ATTR_COLUMNS = {
+    "title": "TITLE",
+    "category": "CATEGORY",
+    "aweswitch_profile": "PROFILE",
+}
+NORMAL_SHORTCUT_TEXT = (
+    "enter Resume selected session   q Quit   e Edit   r Remove   "
+    "c Category   s Sort   esc Cancel"
+)
+EDIT_SHORTCUT_TEXT = (
+    "enter Save cell   tab Next field   shift+tab Previous field   "
+    "left/right Move field   esc Done"
+)
+CONFIRM_SHORTCUT_TEXT = "enter/y Confirm   esc/n Cancel"
 
 MODE_NORMAL = "normal"
 MODE_EDIT = "edit"
 MODE_CONFIRM_RESUME = "confirm_resume"
 MODE_CONFIRM_REMOVE = "confirm_remove"
-
-EDIT_FIELDS = [
-    ("title", "Title"),
-    ("category", "Category"),
-    ("aweswitch_profile", "Profile"),
-]
-
 
 class DragHandle(Static):
     """1-cell vertical divider that can be dragged to resize panels."""
@@ -130,18 +139,12 @@ class BookmarkBrowser(App):
         color: $accent;
         margin-bottom: 1;
     }
-    .edit-field {
-        margin: 0 0 1 0;
-    }
-    .edit-label {
+    #shortcuts {
+        dock: bottom;
+        height: 1;
+        padding: 0 1;
+        background: $panel;
         color: $text-muted;
-    }
-    .edit-input {
-        margin: 0 0 0 2;
-    }
-    .edit-hint {
-        color: $text-muted;
-        margin-top: 1;
     }
     """
 
@@ -153,7 +156,8 @@ class BookmarkBrowser(App):
         self._mode: str = MODE_ORDER[0]
         self._sort_order: str = SORT_ORDER[0]
         self._app_mode: str = MODE_NORMAL
-        self._edit_changes: dict[str, str] = {}
+        self._edit_attr: str | None = None
+        self._edit_value: str = ""
         self._dragging: bool = False
         self._drag_start_x: int = 0
         self._drag_start_sidebar: int = SIDEBAR_FRAC
@@ -169,13 +173,14 @@ class BookmarkBrowser(App):
             with Vertical(id="detail"):
                 yield Static("Select a bookmark to view details.", id="detail-title")
                 yield Static("", id="detail-body")
-        yield Footer()
+        yield Static(NORMAL_SHORTCUT_TEXT, id="shortcuts")
 
     def on_mount(self) -> None:
         table = self.query_one("#table", DataTable)
         table.cursor_type = "row"
         self._load_data()
         table.focus()
+        self._update_shortcuts()
 
     def _is_normal(self) -> bool:
         return self._app_mode == MODE_NORMAL
@@ -228,36 +233,76 @@ class BookmarkBrowser(App):
             return sorted(bookmarks, key=lambda b: (b.category or "", b.id))
         return sorted(bookmarks, key=lambda b: b.id)
 
+    def _update_shortcuts(self) -> None:
+        if not self.is_mounted:
+            return
+        shortcuts = self.query_one("#shortcuts", Static)
+        if self._app_mode == MODE_EDIT:
+            shortcuts.update(EDIT_SHORTCUT_TEXT)
+        elif self._app_mode in (MODE_CONFIRM_RESUME, MODE_CONFIRM_REMOVE):
+            shortcuts.update(CONFIRM_SHORTCUT_TEXT)
+        else:
+            shortcuts.update(NORMAL_SHORTCUT_TEXT)
+
     def _empty_state(self) -> None:
         msg = self.EMPTY_MESSAGE if not self._bookmarks else "No matches."
         self.query_one("#detail-title", Static).update(msg)
         self.query_one("#detail-body", Static).update(self.HELP_TEXT)
 
-    def _clear_edit_widgets(self) -> None:
-        detail = self.query_one("#detail")
-        for widget in list(detail.query(".edit-field")):
-            widget.remove()
-        for widget in list(detail.query(".edit-hint")):
-            widget.remove()
-
     def _clear_selection(self) -> None:
         self._selected = None
         if self._is_normal():
-            self._clear_edit_widgets()
             self.query_one("#detail-title", Static).update("Select a bookmark to view details.")
             self.query_one("#detail-body", Static).update("")
 
+    def _editable_attrs(self) -> list[str]:
+        return EDITABLE_ATTRS_CATEGORY if self._mode == "category" else EDITABLE_ATTRS_ALL
+
+    def _attr_for_column(self, column: int) -> str | None:
+        columns = self._columns_for_mode()
+        if column < 0 or column >= len(columns):
+            return None
+        column_name = columns[column]
+        for attr, mapped_column in ATTR_COLUMNS.items():
+            if mapped_column == column_name and attr in self._editable_attrs():
+                return attr
+        return None
+
+    def _column_for_attr(self, attr: str) -> int:
+        return self._columns_for_mode().index(ATTR_COLUMNS[attr])
+
+    def _value_for_attr(self, b: Bookmark, attr: str) -> str:
+        return getattr(b, attr) or ""
+
+    def _display_value_for_attr(self, b: Bookmark, attr: str, value: str) -> str | Text:
+        if (
+            self._app_mode == MODE_EDIT
+            and self._selected
+            and b.id == self._selected.id
+            and attr == self._edit_attr
+        ):
+            return Text(f"> {self._edit_value}", style="reverse bold")
+        if attr == "title":
+            return value[:50] + ("..." if len(value) > 50 else "")
+        return value or "-"
+
     def _add_bookmark_row(self, table: DataTable, b: Bookmark) -> None:
-        title = b.title[:50] + ("..." if len(b.title) > 50 else "")
+        title = self._display_value_for_attr(b, "title", b.title)
+        profile = self._display_value_for_attr(
+            b,
+            "aweswitch_profile",
+            b.aweswitch_profile or "",
+        )
         if self._mode == "category":
-            values = [b.id, b.provider, title, b.aweswitch_profile or "-", b.session_id]
+            values = [b.id, b.provider, title, profile, b.session_id]
         else:
+            category = self._display_value_for_attr(b, "category", b.category)
             values = [
                 b.id,
                 b.provider,
                 title,
-                b.category or "-",
-                b.aweswitch_profile or "-",
+                category,
+                profile,
                 b.session_id,
             ]
         table.add_row(*values, key=b.id)
@@ -291,10 +336,6 @@ class BookmarkBrowser(App):
             self._filter = event.value.lower()
             self._load_data()
 
-    def on_input_submitted(self, event: Input.Submitted) -> None:
-        if self._app_mode == MODE_EDIT and event.input.id.startswith("edit-"):
-            self._edit_save()
-
     def _is_cat_row(self, key) -> bool:
         return key is not None and str(key).startswith(CAT_KEY_PREFIX)
 
@@ -327,7 +368,6 @@ class BookmarkBrowser(App):
                 break
 
     def _update_detail(self, b: Bookmark) -> None:
-        self._clear_edit_widgets()
         self.query_one("#detail-title", Static).update(f" {b.id}")
         lines = [
             f"Title:     {b.title}",
@@ -347,19 +387,20 @@ class BookmarkBrowser(App):
         if not self._selected or not self._is_normal():
             return
         self._app_mode = MODE_CONFIRM_RESUME
+        self._update_shortcuts()
         self._show_confirm_prompt()
 
     def action_edit(self) -> None:
         if not self._selected or not self._is_normal():
             return
         self._app_mode = MODE_EDIT
-        self._edit_changes = {}
-        self._show_edit_form()
+        self._begin_inline_edit()
 
     def action_remove(self) -> None:
         if not self._selected or not self._is_normal():
             return
         self._app_mode = MODE_CONFIRM_REMOVE
+        self._update_shortcuts()
         self._show_confirm_prompt()
 
     # --- key dispatch for edit / confirm modes ---
@@ -370,6 +411,27 @@ class BookmarkBrowser(App):
         if self._app_mode == MODE_EDIT:
             if key == "escape":
                 self._edit_discard()
+                event.stop()
+            elif key == "enter":
+                self._edit_save()
+                event.stop()
+            elif key in ("tab", "right"):
+                self._move_edit_field(1)
+                event.stop()
+            elif key in ("shift+tab", "left"):
+                self._move_edit_field(-1)
+                event.stop()
+            elif key == "backspace":
+                self._edit_value = self._edit_value[:-1]
+                self._refresh_edit_row()
+                event.stop()
+            elif key == "delete":
+                self._edit_value = ""
+                self._refresh_edit_row()
+                event.stop()
+            elif event.character:
+                self._edit_value += event.character
+                self._refresh_edit_row()
                 event.stop()
             return
 
@@ -411,96 +473,98 @@ class BookmarkBrowser(App):
     def _confirm_execute(self) -> None:
         if not self._selected:
             self._app_mode = MODE_NORMAL
+            self._update_shortcuts()
             return
         if self._app_mode == MODE_CONFIRM_RESUME:
             self._app_mode = MODE_NORMAL
+            self._update_shortcuts()
             self.exit(result=self._selected)
             return
         if self._app_mode == MODE_CONFIRM_REMOVE:
             remove_bookmark(self._selected.id)
             self._selected = None
             self._app_mode = MODE_NORMAL
+            self._update_shortcuts()
             self.query_one("#detail-title", Static).update("Removed")
             self.query_one("#detail-body", Static).update("")
             self._load_data()
 
     def _confirm_cancel(self) -> None:
         self._app_mode = MODE_NORMAL
+        self._update_shortcuts()
         if self._selected:
             self._update_detail(self._selected)
 
     # --- edit helpers ---
 
-    def _show_edit_form(self) -> None:
-        b = self._selected
-        if not b:
+    def _begin_inline_edit(self) -> None:
+        if not self._selected:
+            self._app_mode = MODE_NORMAL
             return
-        title = self.query_one("#detail-title", Static)
-        body = self.query_one("#detail-body", Static)
-        title.update(f"Editing: {b.title}")
-        lines = []
-        for attr, label in EDIT_FIELDS:
-            current = getattr(b, attr) or ""
-            lines.append(f"{label}: {current}")
-        lines.append("")
-        lines.append("Enter: save | Esc: discard")
-        body.update("\n".join(lines))
-        first_input = self._mount_edit_inputs(b)
-        if first_input:
-            first_input.focus()
-
-    def _mount_edit_inputs(self, b: Bookmark) -> Input | None:
-        self._clear_edit_widgets()
-        detail = self.query_one("#detail")
-        first_input = None
-        for attr, label in EDIT_FIELDS:
-            current = getattr(b, attr) or ""
-            row = Horizontal(classes="edit-field")
-            detail.mount(row)
-            row.mount(Static(f"{label}:", classes="edit-label"))
-            inp = Input(
-                value=current,
-                placeholder=f"Current: {current or '(empty)'}",
-                id=f"edit-{attr}",
-                classes="edit-input",
+        table = self.query_one("#table", DataTable)
+        self._edit_attr = self._attr_for_column(table.cursor_column) or self._editable_attrs()[0]
+        self._edit_value = self._value_for_attr(self._selected, self._edit_attr)
+        table.cursor_type = "cell"
+        with suppress(Exception):
+            table.move_cursor(
+                row=table.get_row_index(self._selected.id),
+                column=self._column_for_attr(self._edit_attr),
             )
-            row.mount(inp)
-            if first_input is None:
-                first_input = inp
-        return first_input
+        self.query_one("#detail-title", Static).update(f"Editing: {self._selected.id}")
+        self.query_one("#detail-body", Static).update(
+            f"{ATTR_COLUMNS[self._edit_attr]}: Enter saves this cell. Esc exits editing."
+        )
+        self._update_shortcuts()
+        self._refresh_edit_row()
+
+    def _refresh_edit_row(self) -> None:
+        if self._selected:
+            self._load_data()
+
+    def _move_edit_field(self, delta: int) -> None:
+        if not self._selected or not self._edit_attr:
+            return
+        attrs = self._editable_attrs()
+        self._edit_attr = attrs[(attrs.index(self._edit_attr) + delta) % len(attrs)]
+        self._edit_value = self._value_for_attr(self._selected, self._edit_attr)
+        table = self.query_one("#table", DataTable)
+        with suppress(Exception):
+            table.move_cursor(
+                row=table.get_row_index(self._selected.id),
+                column=self._column_for_attr(self._edit_attr),
+            )
+        self.query_one("#detail-body", Static).update(
+            f"{ATTR_COLUMNS[self._edit_attr]}: Enter saves this cell. Esc exits editing."
+        )
+        self._refresh_edit_row()
 
     def _edit_save(self) -> None:
         if not self._selected:
             self._app_mode = MODE_NORMAL
+            self._update_shortcuts()
             return
         selected_id = self._selected.id
-        for attr, _ in EDIT_FIELDS:
-            try:
-                inp = self.query_one(f"#edit-{attr}", Input)
-                new_val = inp.value.strip()
-                old_val = getattr(self._selected, attr) or ""
-                if new_val and new_val != old_val:
-                    self._edit_changes[attr] = new_val
-            except Exception:
-                pass
-        if self._edit_changes:
-            update_bookmark(selected_id, **self._edit_changes)
+        if self._edit_attr:
+            update_bookmark(selected_id, **{self._edit_attr: self._edit_value.strip()})
             self._load_data()
             for b in self._bookmarks:
                 if b.id == selected_id:
                     self._selected = b
                     break
-        self._clear_edit_widgets()
-        self._app_mode = MODE_NORMAL
+            self._edit_value = self._value_for_attr(self._selected, self._edit_attr)
+            self._refresh_edit_row()
         if self._selected:
             self._update_detail(self._selected)
 
     def _edit_discard(self) -> None:
-        self._edit_changes = {}
-        self._clear_edit_widgets()
+        self._edit_attr = None
+        self._edit_value = ""
         self._app_mode = MODE_NORMAL
+        self.query_one("#table", DataTable).cursor_type = "row"
+        self._update_shortcuts()
         if self._selected:
             self._update_detail(self._selected)
+            self._load_data()
 
     # --- unconditional actions ---
 

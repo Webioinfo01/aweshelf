@@ -112,6 +112,16 @@ class BrowseTests(unittest.TestCase):
         self.assertFalse(enter_bindings[0].priority)
         self.assertEqual(enter_bindings[0].description, "Resume selected session")
 
+    def test_normal_shortcuts_include_enter_resume(self):
+        from aweshelf.tui.app import NORMAL_SHORTCUT_TEXT
+        self.assertIn("enter Resume selected session", NORMAL_SHORTCUT_TEXT)
+
+    def test_edit_shortcuts_describe_inline_cell_editing(self):
+        from aweshelf.tui.app import EDIT_SHORTCUT_TEXT
+        self.assertIn("enter Save cell", EDIT_SHORTCUT_TEXT)
+        self.assertIn("tab Next field", EDIT_SHORTCUT_TEXT)
+        self.assertIn("esc Done", EDIT_SHORTCUT_TEXT)
+
     def test_mode_constants_exist(self):
         from aweshelf.tui.app import (
             MODE_CONFIRM_REMOVE,
@@ -195,7 +205,48 @@ class BrowseInteractionTests(unittest.IsolatedAsyncioTestCase):
         data = json.loads(self.path.read_text())
         self.assertEqual([b["id"] for b in data["bookmarks"]], ["aweshelf_0002"])
 
-    async def test_edit_enter_saves_and_cleans_inputs(self):
+    async def test_edit_mode_edits_current_table_cell(self):
+        from aweshelf.tui.app import MODE_EDIT
+
+        app = BookmarkBrowser()
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            await pilot.press("down")
+            await pilot.pause()
+            await pilot.press("e")
+            await pilot.pause()
+
+            self.assertEqual(app._app_mode, MODE_EDIT)
+            self.assertEqual(app._edit_attr, "title")
+            self.assertEqual(len(list(app.query(".edit-field"))), 0)
+            app._edit_value = "Changed"
+
+            await pilot.press("enter")
+            await pilot.pause()
+
+            self.assertEqual(app._app_mode, MODE_EDIT)
+            self.assertEqual(app._selected.title, "Changed")
+            self.assertEqual(len(list(app.query(".edit-field"))), 0)
+
+        data = json.loads(self.path.read_text())
+        self.assertEqual(data["bookmarks"][0]["title"], "Changed")
+
+    async def test_edit_tab_moves_between_editable_fields(self):
+        app = BookmarkBrowser()
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            await pilot.press("down")
+            await pilot.pause()
+            await pilot.press("e")
+            await pilot.pause()
+
+            self.assertEqual(app._edit_attr, "title")
+            await pilot.press("tab")
+            await pilot.pause()
+
+            self.assertEqual(app._edit_attr, "aweswitch_profile")
+
+    async def test_edit_escape_returns_to_normal_mode(self):
         from aweshelf.tui.app import MODE_NORMAL
 
         app = BookmarkBrowser()
@@ -205,17 +256,10 @@ class BrowseInteractionTests(unittest.IsolatedAsyncioTestCase):
             await pilot.pause()
             await pilot.press("e")
             await pilot.pause()
-            app.query_one("#edit-title").value = "Changed"
-
-            await pilot.press("enter")
+            await pilot.press("escape")
             await pilot.pause()
 
             self.assertEqual(app._app_mode, MODE_NORMAL)
-            self.assertEqual(app._selected.title, "Changed")
-            self.assertEqual(len(list(app.query(".edit-field"))), 0)
-
-        data = json.loads(self.path.read_text())
-        self.assertEqual(data["bookmarks"][0]["title"], "Changed")
 
 
 if __name__ == "__main__":

@@ -11,7 +11,9 @@ from click.testing import CliRunner
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from aweshelf import cli as aweshelf
+from aweshelf.commands.list import format_table
 from aweshelf.lib.store import load_bookmarks
+from aweshelf.types import Bookmark
 
 
 class CliTests(unittest.TestCase):
@@ -90,6 +92,25 @@ class CliTests(unittest.TestCase):
         self.assertIn('aweshelf = "aweshelf.cli:main"', data)
         self.assertIn('click>=8.1', data)
         self.assertIn('textual>=0.40', data)
+
+    def test_format_table_includes_session_column(self):
+        bookmark = Bookmark(
+            id="aweshelf_0001",
+            provider="claude",
+            session_id="sess-001",
+            title="Fix auth bug",
+            category="backend",
+            project_path="/tmp/test",
+            aweswitch_profile="cc-glm",
+        )
+        output = format_table([bookmark])
+        self.assertIn("ID", output.splitlines()[0])
+        self.assertIn("PROVIDER", output.splitlines()[0])
+        self.assertIn("TITLE", output.splitlines()[0])
+        self.assertIn("CATEGORY", output.splitlines()[0])
+        self.assertIn("PROFILE", output.splitlines()[0])
+        self.assertIn("SESSION", output.splitlines()[0])
+        self.assertIn("sess-001", output)
 
 
 MOCK_SESSIONS = [

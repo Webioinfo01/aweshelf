@@ -9,7 +9,7 @@ def format_table(bookmarks: list) -> str:
     if not bookmarks:
         return "No bookmarks found."
 
-    headers = ["ID", "PROVIDER", "TITLE", "CATEGORY", "PROFILE"]
+    headers = ["ID", "PROVIDER", "TITLE", "CATEGORY", "PROFILE", "SESSION"]
     rows = []
     for b in bookmarks:
         rows.append([
@@ -18,6 +18,7 @@ def format_table(bookmarks: list) -> str:
             b.title[:40] + ("..." if len(b.title) > 40 else ""),
             b.category or "-",
             b.aweswitch_profile or "-",
+            b.session_id,
         ])
 
     widths = [len(h) for h in headers]

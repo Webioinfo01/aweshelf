@@ -13,9 +13,11 @@ SIDEBAR_FRAC = 60
 DETAIL_FRAC = 40
 MIN_FRAC = 10
 CATEGORY_COLORS = ["green", "orange", "red", "cyan", "magenta"]
-MODE_ORDER = ["all", "category"]
+MODE_ORDER = ["category", "all"]
 SORT_ORDER = ["cat_id", "id"]
 CAT_KEY_PREFIX = "__cat__"
+ALL_COLUMNS = ["ID", "PROVIDER", "TITLE", "CATEGORY", "PROFILE", "SESSION"]
+CATEGORY_COLUMNS = ["ID", "PROVIDER", "TITLE", "PROFILE", "SESSION"]
 
 MODE_NORMAL = "normal"
 MODE_EDIT = "edit"
@@ -80,7 +82,7 @@ class BookmarkBrowser(App):
         "r      Remove bookmark",
         "y      Confirm action",
         "n      Cancel action",
-        "m      Toggle All / Category mode",
+        "m      Toggle Category / All",
         "s      Cycle sort order",
         "?      Show this help",
         "q      Quit",
@@ -92,7 +94,7 @@ class BookmarkBrowser(App):
         Binding("q", "quit", "Quit"),
         Binding("e", "edit", "Edit"),
         Binding("r", "remove", "Remove"),
-        Binding("m", "toggle_mode", "Mode"),
+        Binding("m", "toggle_mode", "Category"),
         Binding("s", "cycle_sort", "Sort"),
         Binding("question_mark", "help", "Help", show=False),
         Binding("slash", "focus_search", "Filter", show=False),
@@ -169,7 +171,6 @@ class BookmarkBrowser(App):
 
     def on_mount(self) -> None:
         table = self.query_one("#table", DataTable)
-        table.add_columns("PROVIDER", "TITLE", "PROFILE")
         table.cursor_type = "row"
         self._load_data()
         table.focus()
@@ -196,12 +197,19 @@ class BookmarkBrowser(App):
         visible = self._sort_bookmarks(visible)
 
         table = self.query_one("#table", DataTable)
-        table.clear()
+        self._reset_table_columns(table)
 
         if self._mode == "category":
             self._render_grouped(table, visible)
         else:
             self._render_flat(table, visible)
+
+    def _columns_for_mode(self) -> list[str]:
+        return CATEGORY_COLUMNS if self._mode == "category" else ALL_COLUMNS
+
+    def _reset_table_columns(self, table: DataTable) -> None:
+        table.clear(columns=True)
+        table.add_columns(*self._columns_for_mode())
 
     def _sort_bookmarks(self, bookmarks: list[Bookmark]) -> list[Bookmark]:
         if self._sort_order == "cat_id":
@@ -214,12 +222,19 @@ class BookmarkBrowser(App):
         self.query_one("#detail-body", Static).update(self.HELP_TEXT)
 
     def _add_bookmark_row(self, table: DataTable, b: Bookmark) -> None:
-        table.add_row(
-            b.provider,
-            b.title[:50] + ("..." if len(b.title) > 50 else ""),
-            b.aweswitch_profile or "-",
-            key=b.id,
-        )
+        title = b.title[:50] + ("..." if len(b.title) > 50 else "")
+        if self._mode == "category":
+            values = [b.id, b.provider, title, b.aweswitch_profile or "-", b.session_id]
+        else:
+            values = [
+                b.id,
+                b.provider,
+                title,
+                b.category or "-",
+                b.aweswitch_profile or "-",
+                b.session_id,
+            ]
+        table.add_row(*values, key=b.id)
 
     def _render_flat(self, table: DataTable, visible: list[Bookmark]) -> None:
         if not visible:
@@ -241,7 +256,7 @@ class BookmarkBrowser(App):
         for i, cat in enumerate(sorted(categories)):
             color = CATEGORY_COLORS[i % len(CATEGORY_COLORS)]
             header = Text(f" {cat}", style=f"bold {color}")
-            table.add_row(header, "", "", key=f"{CAT_KEY_PREFIX}{cat}")
+            table.add_row(header, "", "", "", "", key=f"{CAT_KEY_PREFIX}{cat}")
             for b in categories[cat]:
                 self._add_bookmark_row(table, b)
 

@@ -1,8 +1,5 @@
 """Bookmark command."""
 
-import os
-from typing import Optional
-
 import click
 
 from aweshelf.types import Bookmark
@@ -43,10 +40,10 @@ def pick_session(sessions: list[dict], limit: int = DEFAULT_LIST_LIMIT) -> dict:
 
 
 def run_bookmark(
-    session_id: Optional[str] = None,
-    title: Optional[str] = None,
-    category: Optional[str] = None,
-    profile: Optional[str] = None,
+    session_id: str | None = None,
+    title: str | None = None,
+    category: str | None = None,
+    profile: str | None = None,
     interactive: bool = True,
     verbose: bool = False,
 ) -> Bookmark:
@@ -123,5 +120,8 @@ def run_bookmark(
 @click.option("--verbose", is_flag=True, help="Show all sessions (no limit).")
 def bookmark_command(session_id, title, category, profile, verbose):
     """Bookmark a session for quick access."""
-    b = run_bookmark(session_id, title, category, profile, interactive=True, verbose=verbose)
+    try:
+        b = run_bookmark(session_id, title, category, profile, interactive=True, verbose=verbose)
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
     click.echo(f"\nBookmarked {b.id} — {b.title}")

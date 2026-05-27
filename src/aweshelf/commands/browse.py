@@ -10,8 +10,8 @@ def browse_command():
     """Browse bookmarks interactively."""
     try:
         from aweshelf.tui.app import BookmarkBrowser
-    except ImportError:
-        raise click.ClickException("textual is required for browse. Install with: pip install textual")
+    except ImportError as exc:
+        raise click.ClickException("textual is required for browse. Install with: pip install textual") from exc
 
     app = BookmarkBrowser()
     result = app.run()

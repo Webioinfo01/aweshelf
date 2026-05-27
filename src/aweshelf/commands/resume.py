@@ -25,7 +25,7 @@ def resume_command(bookmark_id, profile, raw, dry_run):
     try:
         target = build_resume_target(b, profile_override=profile, raw=raw)
     except ResumeError as exc:
-        raise click.ClickException(str(exc))
+        raise click.ClickException(str(exc)) from exc
     if target.warning:
         click.echo(f"Warning: {target.warning}", err=True)
     click.echo(f"Resuming {b.id} — {b.title}")
@@ -36,7 +36,7 @@ def resume_command(bookmark_id, profile, raw, dry_run):
 
     try:
         run_resume_target(target)
-    except FileNotFoundError:
-        raise click.ClickException(f"command not found: {target.argv[0]}")
+    except FileNotFoundError as exc:
+        raise click.ClickException(f"command not found: {target.argv[0]}") from exc
     except OSError as exc:
-        raise click.ClickException(f"failed to run {target.argv[0]}: {exc}")
+        raise click.ClickException(f"failed to run {target.argv[0]}: {exc}") from exc

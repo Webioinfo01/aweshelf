@@ -2,8 +2,8 @@
 
 import json
 import re
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, Optional
 
 TAG_RE = re.compile(r"<[^>]+>")
 
@@ -30,7 +30,7 @@ def _truncate(text: str, limit: int = 80) -> str:
     return text
 
 
-def extract_title_from_messages(messages: list[dict]) -> Optional[str]:
+def extract_title_from_messages(messages: list[dict]) -> str | None:
     for msg in messages:
         content = msg.get("content", "")
         if isinstance(content, str) and content.strip():
@@ -63,7 +63,7 @@ def _parse_jsonl(
     }
 
     try:
-        with open(jsonl_path, "r") as f:
+        with open(jsonl_path) as f:
             for i, line in enumerate(f):
                 if i >= max_lines:
                     break
@@ -156,9 +156,8 @@ def _extract_codex_fields(entry: dict, state: dict) -> None:
             if ts:
                 state["created_at"] = ts
 
-    if entry_type == "response_item":
-        if not state["model"]:
-            state["model"] = entry.get("model", "")
+    if entry_type == "response_item" and not state["model"]:
+        state["model"] = entry.get("model", "")
 
 
 def parse_claude_session(jsonl_path: Path, max_lines: int = 80) -> dict:

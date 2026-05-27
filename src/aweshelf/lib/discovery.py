@@ -2,7 +2,6 @@
 
 import os
 from pathlib import Path
-from typing import Optional
 
 from aweshelf.lib.session import parse_session_meta
 
@@ -66,13 +65,13 @@ def _sort_by_mtime(sessions: list[dict]) -> list[dict]:
     return sorted(sessions, key=get_mtime, reverse=True)
 
 
-def find_project_sessions(project_path: Optional[str] = None) -> list[dict]:
+def find_project_sessions(project_path: str | None = None) -> list[dict]:
     cwd = project_path or os.getcwd()
     sessions = find_all_sessions()
     filtered = _filter_project_sessions(sessions, cwd)
     return _sort_by_mtime(filtered)
 
 
-def find_recent_session(project_path: Optional[str] = None) -> Optional[dict]:
+def find_recent_session(project_path: str | None = None) -> dict | None:
     sessions = find_project_sessions(project_path)
     return sessions[0] if sessions else None

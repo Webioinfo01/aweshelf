@@ -5,7 +5,6 @@ import os
 import re
 import tempfile
 from pathlib import Path
-from typing import Optional
 
 from aweshelf.types import Bookmark
 
@@ -25,7 +24,7 @@ def bookmark_path() -> Path:
     return (CONFIG_DIR / "bookmarks.json").expanduser()
 
 
-def generate_id(bookmarks: Optional[list[Bookmark]] = None) -> str:
+def generate_id(bookmarks: list[Bookmark] | None = None) -> str:
     bookmarks = bookmarks or []
     highest = 0
     for bookmark in bookmarks:
@@ -35,7 +34,7 @@ def generate_id(bookmarks: Optional[list[Bookmark]] = None) -> str:
     return f"aweshelf_{highest + 1:04d}"
 
 
-def load_bookmarks(path: Optional[Path] = None) -> list[Bookmark]:
+def load_bookmarks(path: Path | None = None) -> list[Bookmark]:
     path = path or bookmark_path()
     path = Path(path).expanduser()
     if not path.exists():
@@ -55,7 +54,7 @@ def load_bookmarks(path: Optional[Path] = None) -> list[Bookmark]:
         raise BookmarkStoreError(f"bookmark store at {path} contains invalid bookmark data") from exc
 
 
-def save_bookmarks(bookmarks: list[Bookmark], path: Optional[Path] = None) -> None:
+def save_bookmarks(bookmarks: list[Bookmark], path: Path | None = None) -> None:
     path = path or bookmark_path()
     path = Path(path).expanduser()
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -72,7 +71,7 @@ def save_bookmarks(bookmarks: list[Bookmark], path: Optional[Path] = None) -> No
             os.unlink(tmp_name)
 
 
-def find_bookmark(bookmark_id: str, path: Optional[Path] = None) -> Optional[Bookmark]:
+def find_bookmark(bookmark_id: str, path: Path | None = None) -> Bookmark | None:
     bookmarks = load_bookmarks(path)
     for b in bookmarks:
         if b.id == bookmark_id:
@@ -80,7 +79,7 @@ def find_bookmark(bookmark_id: str, path: Optional[Path] = None) -> Optional[Boo
     return None
 
 
-def find_by_session_id(session_id: str, path: Optional[Path] = None) -> Optional[Bookmark]:
+def find_by_session_id(session_id: str, path: Path | None = None) -> Bookmark | None:
     bookmarks = load_bookmarks(path)
     for b in bookmarks:
         if b.session_id == session_id:
@@ -88,7 +87,7 @@ def find_by_session_id(session_id: str, path: Optional[Path] = None) -> Optional
     return None
 
 
-def add_bookmark(bookmark: Bookmark, path: Optional[Path] = None) -> Bookmark:
+def add_bookmark(bookmark: Bookmark, path: Path | None = None) -> Bookmark:
     bookmarks = load_bookmarks(path)
     for b in bookmarks:
         if b.session_id == bookmark.session_id:
@@ -100,7 +99,7 @@ def add_bookmark(bookmark: Bookmark, path: Optional[Path] = None) -> Bookmark:
     return bookmark
 
 
-def remove_bookmark(bookmark_id: str, path: Optional[Path] = None) -> bool:
+def remove_bookmark(bookmark_id: str, path: Path | None = None) -> bool:
     bookmarks = load_bookmarks(path)
     new_bookmarks = [b for b in bookmarks if b.id != bookmark_id]
     if len(new_bookmarks) == len(bookmarks):
@@ -109,7 +108,7 @@ def remove_bookmark(bookmark_id: str, path: Optional[Path] = None) -> bool:
     return True
 
 
-def update_bookmark(bookmark_id: str, path: Optional[Path] = None, **fields) -> Optional[Bookmark]:
+def update_bookmark(bookmark_id: str, path: Path | None = None, **fields) -> Bookmark | None:
     bookmarks = load_bookmarks(path)
     for b in bookmarks:
         if b.id == bookmark_id:
@@ -121,7 +120,7 @@ def update_bookmark(bookmark_id: str, path: Optional[Path] = None, **fields) -> 
     return None
 
 
-def list_categories(path: Optional[Path] = None) -> list[str]:
+def list_categories(path: Path | None = None) -> list[str]:
     bookmarks = load_bookmarks(path)
     cats = sorted(set(b.category for b in bookmarks if b.category))
     return cats

@@ -2,9 +2,9 @@
 
 import os
 import shlex
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Optional
 
 import click
 
@@ -15,8 +15,8 @@ from aweshelf.types import Bookmark
 @dataclass
 class ResumeTarget:
     argv: list[str]
-    cwd: Optional[Path] = None
-    warning: Optional[str] = None
+    cwd: Path | None = None
+    warning: str | None = None
 
 
 class ResumeError(ValueError):
@@ -25,7 +25,7 @@ class ResumeError(ValueError):
 
 def build_resume_target(
     bookmark: Bookmark,
-    profile_override: Optional[str] = None,
+    profile_override: str | None = None,
     raw: bool = False,
     profile_exists: Callable[[str], bool] = default_profile_exists,
 ) -> ResumeTarget:
@@ -63,7 +63,7 @@ def run_resume_target(target: ResumeTarget) -> None:
         raise
 
 
-def execute_resume(bookmark: Bookmark, profile_override: Optional[str] = None, raw: bool = False) -> None:
+def execute_resume(bookmark: Bookmark, profile_override: str | None = None, raw: bool = False) -> None:
     """Build and run a resume target with click-friendly error handling."""
     target = build_resume_target(bookmark, profile_override=profile_override, raw=raw)
     if target.warning:
@@ -72,13 +72,13 @@ def execute_resume(bookmark: Bookmark, profile_override: Optional[str] = None, r
     click.echo(f"  $ {format_resume_target(target)}")
     try:
         run_resume_target(target)
-    except FileNotFoundError:
-        raise click.ClickException(f"command not found: {target.argv[0]}")
+    except FileNotFoundError as exc:
+        raise click.ClickException(f"command not found: {target.argv[0]}") from exc
     except OSError as exc:
-        raise click.ClickException(f"failed to run {target.argv[0]}: {exc}")
+        raise click.ClickException(f"failed to run {target.argv[0]}: {exc}") from exc
 
 
-def _valid_project_path(project_path: str) -> Optional[Path]:
+def _valid_project_path(project_path: str) -> Path | None:
     if not project_path:
         return None
     path = Path(project_path).expanduser()

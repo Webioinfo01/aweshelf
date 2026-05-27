@@ -1,8 +1,7 @@
 """Shared types for aweshelf."""
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from typing import Optional
 
 
 @dataclass
@@ -13,7 +12,7 @@ class Bookmark:
     title: str
     category: str
     project_path: str
-    aweswitch_profile: Optional[str] = None
+    aweswitch_profile: str | None = None
     bookmarked_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict:

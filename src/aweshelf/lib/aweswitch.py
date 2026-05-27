@@ -3,7 +3,6 @@
 import json
 import os
 from pathlib import Path
-from typing import Optional
 
 
 AWESWITCH_CONFIG = Path("~/.config/aweswitch/config.json")
@@ -16,7 +15,7 @@ def aweswitch_config_path() -> Path:
     return AWESWITCH_CONFIG.expanduser()
 
 
-def load_aweswitch_config() -> Optional[dict]:
+def load_aweswitch_config() -> dict | None:
     path = aweswitch_config_path()
     if not path.exists():
         return None
@@ -29,7 +28,7 @@ def load_aweswitch_config() -> Optional[dict]:
     return None
 
 
-def detect_profile(session_env: dict) -> Optional[str]:
+def detect_profile(session_env: dict) -> str | None:
     config = load_aweswitch_config()
     if not config:
         return None
@@ -40,7 +39,7 @@ def detect_profile(session_env: dict) -> Optional[str]:
     if not base_url and not model:
         return None
 
-    for provider, profiles in config.get("profiles", {}).items():
+    for _provider, profiles in config.get("profiles", {}).items():
         if not isinstance(profiles, dict):
             continue
         for name, profile in profiles.items():
@@ -49,12 +48,10 @@ def detect_profile(session_env: dict) -> Optional[str]:
             env = profile.get("env", {})
             p_url = env.get("ANTHROPIC_BASE_URL", "")
             p_model = env.get("ANTHROPIC_MODEL", "")
-            if base_url and p_url and base_url == p_url:
-                if not model or not p_model or model == p_model:
-                    return name
-            if model and p_model and model == p_model:
-                if not base_url or not p_url:
-                    return name
+            if base_url and p_url and base_url == p_url and (not model or not p_model or model == p_model):
+                return name
+            if model and p_model and model == p_model and (not base_url or not p_url):
+                return name
 
     return None
 
@@ -63,13 +60,13 @@ def profile_exists(profile_name: str) -> bool:
     config = load_aweswitch_config()
     if not config:
         return False
-    for provider, profiles in config.get("profiles", {}).items():
+    for _provider, profiles in config.get("profiles", {}).items():
         if isinstance(profiles, dict) and profile_name in profiles:
             return True
     return False
 
 
-def build_resume_command(provider: str, profile_name: Optional[str], session_id: str, raw: bool = False) -> list[str]:
+def build_resume_command(provider: str, profile_name: str | None, session_id: str, raw: bool = False) -> list[str]:
     if raw or not profile_name:
         if provider == "codex":
             return ["codex", "resume", session_id]

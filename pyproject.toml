@@ -23,8 +23,25 @@ classifiers = [
   "Topic :: Utilities"
 ]
 
+[project.optional-dependencies]
+dev = ["pytest", "ruff"]
+
 [project.scripts]
 aweshelf = "aweshelf.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["aweshelf"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

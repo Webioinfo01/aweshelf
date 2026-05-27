@@ -12,7 +12,7 @@ from aweshelf.types import Bookmark
 SIDEBAR_FRAC = 60
 DETAIL_FRAC = 40
 MIN_FRAC = 10
-CATEGORY_COLORS = ["success", "warning", "error", "accent", "secondary"]
+CATEGORY_COLORS = ["green", "orange", "red", "cyan", "magenta"]
 MODE_ORDER = ["all", "category"]
 SORT_ORDER = ["cat_id", "id"]
 

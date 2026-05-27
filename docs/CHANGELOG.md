@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.1.1
+
+Bug fixes, TUI search, and test coverage improvements.
+
+### Highlights
+
+- Fix: bookmark_command now catches duplicate session errors gracefully instead of showing a traceback
+- Fix: all exception handlers use `raise ... from exc` for proper exception chains
+- Search command now matches across title, category, session_id, project_path, and profile
+- TUI browse: add `/` to filter bookmarks and `Esc` to clear filter
+- TUI browse: draggable sidebar resize with `[`/`]` keys and mouse drag
+- Add `test_discovery.py` covering session discovery module (9 tests)
+- Add bookmark command and search integration tests (6 tests)
+- Replace `Optional[X]` with `X | None` across all modules (Python 3.10+)
+- Add ruff linter config and pytest config to pyproject.toml
+
 ## v0.1.0
 
 Initial release — bookmark, categorize, and restore AI coding sessions.

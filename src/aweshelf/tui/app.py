@@ -1,5 +1,7 @@
 """TUI browse app using textual."""
 
+from contextlib import suppress
+
 from rich.text import Text
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -77,7 +79,7 @@ class BookmarkBrowser(App):
     HELP_TEXT = "\n".join([
         "/      Filter bookmarks",
         "Esc    Clear filter / cancel",
-        "Enter  Resume bookmark",
+        "Enter  Resume selected session",
         "e      Edit bookmark",
         "r      Remove bookmark",
         "y      Confirm action",
@@ -90,7 +92,7 @@ class BookmarkBrowser(App):
     ])
 
     BINDINGS = [
-        Binding("enter", "resume", "Resume", show=False, priority=True),
+        Binding("enter", "resume", "Resume selected session"),
         Binding("q", "quit", "Quit"),
         Binding("e", "edit", "Edit"),
         Binding("r", "remove", "Remove"),
@@ -98,7 +100,7 @@ class BookmarkBrowser(App):
         Binding("s", "cycle_sort", "Sort"),
         Binding("question_mark", "help", "Help", show=False),
         Binding("slash", "focus_search", "Filter", show=False),
-        Binding("escape", "clear_search", "Clear", show=False),
+        Binding("escape", "clear_search", "Cancel"),
         Binding("[", "resize_sidebar(-5)", "Shrink sidebar", show=False),
         Binding("]", "resize_sidebar(5)", "Grow sidebar", show=False),
     ]
@@ -195,6 +197,9 @@ class BookmarkBrowser(App):
         self._bookmarks = load_bookmarks()
         visible = [b for b in self._bookmarks if self._matches_filter(b)]
         visible = self._sort_bookmarks(visible)
+        visible_ids = {b.id for b in visible}
+        if self._selected and self._selected.id not in visible_ids:
+            self._selected = None
 
         table = self.query_one("#table", DataTable)
         self._reset_table_columns(table)
@@ -203,6 +208,7 @@ class BookmarkBrowser(App):
             self._render_grouped(table, visible)
         else:
             self._render_flat(table, visible)
+        self._restore_selected_cursor(table)
 
     def _columns_for_mode(self) -> list[str]:
         return CATEGORY_COLUMNS if self._mode == "category" else ALL_COLUMNS
@@ -210,6 +216,12 @@ class BookmarkBrowser(App):
     def _reset_table_columns(self, table: DataTable) -> None:
         table.clear(columns=True)
         table.add_columns(*self._columns_for_mode())
+
+    def _restore_selected_cursor(self, table: DataTable) -> None:
+        if not self._selected:
+            return
+        with suppress(Exception):
+            table.move_cursor(row=table.get_row_index(self._selected.id))
 
     def _sort_bookmarks(self, bookmarks: list[Bookmark]) -> list[Bookmark]:
         if self._sort_order == "cat_id":
@@ -220,6 +232,20 @@ class BookmarkBrowser(App):
         msg = self.EMPTY_MESSAGE if not self._bookmarks else "No matches."
         self.query_one("#detail-title", Static).update(msg)
         self.query_one("#detail-body", Static).update(self.HELP_TEXT)
+
+    def _clear_edit_widgets(self) -> None:
+        detail = self.query_one("#detail")
+        for widget in list(detail.query(".edit-field")):
+            widget.remove()
+        for widget in list(detail.query(".edit-hint")):
+            widget.remove()
+
+    def _clear_selection(self) -> None:
+        self._selected = None
+        if self._is_normal():
+            self._clear_edit_widgets()
+            self.query_one("#detail-title", Static).update("Select a bookmark to view details.")
+            self.query_one("#detail-body", Static).update("")
 
     def _add_bookmark_row(self, table: DataTable, b: Bookmark) -> None:
         title = b.title[:50] + ("..." if len(b.title) > 50 else "")
@@ -265,18 +291,30 @@ class BookmarkBrowser(App):
             self._filter = event.value.lower()
             self._load_data()
 
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        if self._app_mode == MODE_EDIT and event.input.id.startswith("edit-"):
+            self._edit_save()
+
     def _is_cat_row(self, key) -> bool:
         return key is not None and str(key).startswith(CAT_KEY_PREFIX)
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
+        if not self._is_normal():
+            return
         if self._dragging or self._is_cat_row(event.row_key.value):
+            self._clear_selection()
             return
         self._select_bookmark(event.row_key.value)
         if self._is_normal():
             self.action_resume()
 
     def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
-        if self._dragging or event.row_key is None or self._is_cat_row(event.row_key.value):
+        if not self._is_normal():
+            return
+        if self._dragging:
+            return
+        if event.row_key is None or self._is_cat_row(event.row_key.value):
+            self._clear_selection()
             return
         self._select_bookmark(event.row_key.value)
 
@@ -289,6 +327,7 @@ class BookmarkBrowser(App):
                 break
 
     def _update_detail(self, b: Bookmark) -> None:
+        self._clear_edit_widgets()
         self.query_one("#detail-title", Static).update(f" {b.id}")
         lines = [
             f"Title:     {b.title}",
@@ -332,13 +371,10 @@ class BookmarkBrowser(App):
             if key == "escape":
                 self._edit_discard()
                 event.stop()
-            elif key == "enter":
-                self._edit_save()
-                event.stop()
             return
 
         if self._app_mode in (MODE_CONFIRM_RESUME, MODE_CONFIRM_REMOVE):
-            if key == "y":
+            if key in ("y", "enter"):
                 self._confirm_execute()
                 event.stop()
             elif key in ("n", "escape"):
@@ -363,13 +399,13 @@ class BookmarkBrowser(App):
             body.update(
                 f"Session: {b.session_id}\n"
                 f"Title:   {b.title}\n\n"
-                "[y] Resume  [n] Cancel"
+                "[Enter/y] Resume  [Esc/n] Cancel"
             )
         elif self._app_mode == MODE_CONFIRM_REMOVE:
             title.update("Remove this bookmark?")
             body.update(
                 f"{b.id}: {b.title}\n\n"
-                "[y] Remove  [n] Cancel"
+                "[Enter/y] Remove  [Esc/n] Cancel"
             )
 
     def _confirm_execute(self) -> None:
@@ -414,15 +450,13 @@ class BookmarkBrowser(App):
             first_input.focus()
 
     def _mount_edit_inputs(self, b: Bookmark) -> Input | None:
+        self._clear_edit_widgets()
         detail = self.query_one("#detail")
-        for widget in list(detail.query(".edit-field")):
-            widget.remove()
-        for widget in list(detail.query(".edit-hint")):
-            widget.remove()
         first_input = None
         for attr, label in EDIT_FIELDS:
             current = getattr(b, attr) or ""
             row = Horizontal(classes="edit-field")
+            detail.mount(row)
             row.mount(Static(f"{label}:", classes="edit-label"))
             inp = Input(
                 value=current,
@@ -431,7 +465,6 @@ class BookmarkBrowser(App):
                 classes="edit-input",
             )
             row.mount(inp)
-            detail.mount(row)
             if first_input is None:
                 first_input = inp
         return first_input
@@ -440,6 +473,7 @@ class BookmarkBrowser(App):
         if not self._selected:
             self._app_mode = MODE_NORMAL
             return
+        selected_id = self._selected.id
         for attr, _ in EDIT_FIELDS:
             try:
                 inp = self.query_one(f"#edit-{attr}", Input)
@@ -450,18 +484,20 @@ class BookmarkBrowser(App):
             except Exception:
                 pass
         if self._edit_changes:
-            update_bookmark(self._selected.id, **self._edit_changes)
+            update_bookmark(selected_id, **self._edit_changes)
             self._load_data()
             for b in self._bookmarks:
-                if b.id == self._selected.id:
+                if b.id == selected_id:
                     self._selected = b
                     break
+        self._clear_edit_widgets()
         self._app_mode = MODE_NORMAL
         if self._selected:
             self._update_detail(self._selected)
 
     def _edit_discard(self) -> None:
         self._edit_changes = {}
+        self._clear_edit_widgets()
         self._app_mode = MODE_NORMAL
         if self._selected:
             self._update_detail(self._selected)

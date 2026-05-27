@@ -1,6 +1,9 @@
 """Tests for browse TUI configuration."""
 
+import json
+import os
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -106,14 +109,113 @@ class BrowseTests(unittest.TestCase):
 
     def test_enter_binding_has_priority(self):
         enter_bindings = [b for b in BookmarkBrowser.BINDINGS if b.key == "enter"]
-        self.assertTrue(enter_bindings[0].priority)
+        self.assertFalse(enter_bindings[0].priority)
+        self.assertEqual(enter_bindings[0].description, "Resume selected session")
 
     def test_mode_constants_exist(self):
-        from aweshelf.tui.app import MODE_NORMAL, MODE_EDIT, MODE_CONFIRM_RESUME, MODE_CONFIRM_REMOVE
+        from aweshelf.tui.app import (
+            MODE_CONFIRM_REMOVE,
+            MODE_CONFIRM_RESUME,
+            MODE_EDIT,
+            MODE_NORMAL,
+        )
         self.assertEqual(MODE_NORMAL, "normal")
         self.assertEqual(MODE_EDIT, "edit")
         self.assertEqual(MODE_CONFIRM_RESUME, "confirm_resume")
         self.assertEqual(MODE_CONFIRM_REMOVE, "confirm_remove")
+
+
+@unittest.skipIf(BookmarkBrowser is None, "textual is not installed")
+class BrowseInteractionTests(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self._old_config = os.environ.get("AWESHELF_CONFIG")
+        self._tmp = tempfile.TemporaryDirectory()
+        self.path = Path(self._tmp.name) / "bookmarks.json"
+        self.path.write_text(json.dumps({
+            "version": 1,
+            "bookmarks": [
+                {
+                    "id": "aweshelf_0001",
+                    "provider": "claude",
+                    "session_id": "sess-001",
+                    "title": "One",
+                    "category": "backend",
+                    "project_path": "/tmp",
+                    "aweswitch_profile": "cc-glm",
+                },
+                {
+                    "id": "aweshelf_0002",
+                    "provider": "codex",
+                    "session_id": "sess-002",
+                    "title": "Two",
+                    "category": "frontend",
+                    "project_path": "/tmp",
+                    "aweswitch_profile": "codex",
+                },
+            ],
+        }))
+        os.environ["AWESHELF_CONFIG"] = str(self.path)
+
+    def tearDown(self):
+        if self._old_config is None:
+            os.environ.pop("AWESHELF_CONFIG", None)
+        else:
+            os.environ["AWESHELF_CONFIG"] = self._old_config
+        self._tmp.cleanup()
+
+    async def test_category_header_does_not_reuse_previous_selection_for_remove(self):
+        from aweshelf.tui.app import MODE_NORMAL
+
+        app = BookmarkBrowser()
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            await pilot.press("down")
+            await pilot.pause()
+            self.assertEqual(app._selected.id, "aweshelf_0001")
+
+            await pilot.press("up")
+            await pilot.pause()
+            await pilot.press("r")
+            await pilot.pause()
+
+            self.assertIsNone(app._selected)
+            self.assertEqual(app._app_mode, MODE_NORMAL)
+
+    async def test_enter_confirms_remove(self):
+        app = BookmarkBrowser()
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            await pilot.press("down")
+            await pilot.pause()
+            await pilot.press("r")
+            await pilot.pause()
+            await pilot.press("enter")
+            await pilot.pause()
+
+        data = json.loads(self.path.read_text())
+        self.assertEqual([b["id"] for b in data["bookmarks"]], ["aweshelf_0002"])
+
+    async def test_edit_enter_saves_and_cleans_inputs(self):
+        from aweshelf.tui.app import MODE_NORMAL
+
+        app = BookmarkBrowser()
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            await pilot.press("down")
+            await pilot.pause()
+            await pilot.press("e")
+            await pilot.pause()
+            app.query_one("#edit-title").value = "Changed"
+
+            await pilot.press("enter")
+            await pilot.pause()
+
+            self.assertEqual(app._app_mode, MODE_NORMAL)
+            self.assertEqual(app._selected.title, "Changed")
+            self.assertEqual(len(list(app.query(".edit-field"))), 0)
+
+        data = json.loads(self.path.read_text())
+        self.assertEqual(data["bookmarks"][0]["title"], "Changed")
 
 
 if __name__ == "__main__":

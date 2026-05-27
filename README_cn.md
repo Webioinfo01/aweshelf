@@ -71,16 +71,37 @@ aweshelf browse
 ## 命令
 
 ```bash
-aweshelf bookmark [SESSION_ID] [-t TITLE] [-c CATEGORY] [--profile PROFILE]
+aweshelf bookmark [SESSION_ID] [-t TITLE] [-c CATEGORY] [--profile PROFILE] [--verbose]
 aweshelf list [-c CATEGORY] [-p PROVIDER]
-aweshelf search QUERY
+aweshelf search QUERY              # 搜索标题、分类、会话ID、项目路径、配置
 aweshelf recent [-n COUNT]
 aweshelf show BOOKMARK_ID [--json]
 aweshelf edit BOOKMARK_ID [-t TITLE] [-c CATEGORY] [--profile PROFILE]
 aweshelf rm BOOKMARK_ID [--force]
 aweshelf resume BOOKMARK_ID [--profile PROFILE] [--raw] [--dry-run]
 aweshelf browse
+aweshelf help [COMMAND]
 ```
+
+## 浏览模式 (TUI)
+
+`aweshelf browse` 打开交互式 TUI，左侧为书签表格，右侧为详情面板。
+
+| 按键 | 操作 |
+|------|------|
+| `Enter` | 恢复选中的会话（带确认） |
+| `e` | 内联编辑当前单元格（标题、分类、配置） |
+| `r` | 删除选中书签（带确认） |
+| `y` / `n` | 确认 / 取消操作 |
+| `c` | 切换分类分组 / 全部视图 |
+| `s` | 循环排序方式（分类+ID / ID） |
+| `/` | 过滤书签 |
+| `Esc` | 清除过滤 / 取消 |
+| `[` / `]` | 缩小 / 扩大侧边栏 |
+| `?` | 显示快捷键帮助 |
+| `q` | 退出 |
+
+编辑模式：输入文字编辑，`Tab`/`Right` 切换下一个字段，`Shift+Tab`/`Left` 切换上一个，`Enter` 保存，`Esc` 退出。
 
 ## 开发
 

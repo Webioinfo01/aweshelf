@@ -71,16 +71,37 @@ Bookmarks are stored at `~/.config/aweshelf/bookmarks.json`. Override with `AWES
 ## Commands
 
 ```bash
-aweshelf bookmark [SESSION_ID] [-t TITLE] [-c CATEGORY] [--profile PROFILE]
+aweshelf bookmark [SESSION_ID] [-t TITLE] [-c CATEGORY] [--profile PROFILE] [--verbose]
 aweshelf list [-c CATEGORY] [-p PROVIDER]
-aweshelf search QUERY
+aweshelf search QUERY              # search across title, category, session, project, profile
 aweshelf recent [-n COUNT]
 aweshelf show BOOKMARK_ID [--json]
 aweshelf edit BOOKMARK_ID [-t TITLE] [-c CATEGORY] [--profile PROFILE]
 aweshelf rm BOOKMARK_ID [--force]
 aweshelf resume BOOKMARK_ID [--profile PROFILE] [--raw] [--dry-run]
 aweshelf browse
+aweshelf help [COMMAND]
 ```
+
+## Browse (TUI)
+
+`aweshelf browse` opens an interactive TUI with a sidebar table and detail pane.
+
+| Key | Action |
+|-----|--------|
+| `Enter` | Resume selected session (with confirmation) |
+| `e` | Inline-edit the current cell (title, category, profile) |
+| `r` | Remove selected bookmark (with confirmation) |
+| `y` / `n` | Confirm / cancel action |
+| `c` | Toggle between Category-grouped and All view |
+| `s` | Cycle sort order (category+id / id) |
+| `/` | Filter bookmarks |
+| `Esc` | Clear filter / cancel |
+| `[` / `]` | Shrink / grow sidebar |
+| `?` | Show keyboard shortcuts |
+| `q` | Quit |
+
+In edit mode: type to edit, `Tab`/`Right` to next field, `Shift+Tab`/`Left` to previous, `Enter` to save, `Esc` to exit.
 
 ## Development
 

@@ -14,6 +14,7 @@
     <img src="https://img.shields.io/badge/status-alpha-c96a3d?style=flat-square" alt="Status">
     <img src="https://img.shields.io/badge/install-pip-22C55E?style=flat-square" alt="pip install">
     <img src="https://img.shields.io/badge/platform-terminal-334155?style=flat-square" alt="Platform">
+    <img src="https://img.shields.io/github/stars/mugpeng/aweshelf?style=flat-square" alt="GitHub stars">
   </p>
 </div>
 

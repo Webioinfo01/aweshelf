@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.1.2
+
+Browse mode overhaul — inline editing, mode-based UI, and quality-of-life improvements.
+
+### Highlights
+
+- Browse: inline cell editing with `[e]` key — edit title, category, URL, and notes directly in the TUI
+- Browse: replace separate EditScreen/ConfirmScreen with mode-based inline editing for a more cohesive UX
+- Browse: category toggle shortcut changed from `m` to `c` for clarity
+- Browse: align browse and list column layout for consistency
+- Browse: add edit and remove bookmarks in browse mode
+- Browse: add category mode toggle and sort cycle (`s` key)
+- First session prompt is now persisted to avoid repeated prompts
+- Fix: remove `$` prefix from category color names for Python API compatibility
+- Fix: stabilize browse selection actions
+- Docs: add logo and PyPI downloads badge
+
 ## v0.1.1
 
 Bug fixes, TUI search, and test coverage improvements.

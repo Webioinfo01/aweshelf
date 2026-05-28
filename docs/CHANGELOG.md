@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.1.3
+
+CLI polish, improved bookmarking flow, and browse TUI refinements.
+
+### Highlights
+
+- Bookmark: auto-detect current session when no session ID is given
+- Bookmark: interactive aweswitch profile selection with validation
+- Browse: show `Del` shortcut for clearing edited cells
+- Browse: refine edit and confirm prompt text for clarity
+- CLI: remove redundant `help` command — use `-h`/`--help` instead
+- CLI: `list` gains `--sort id|recent` and `-n/--limit` flags; `recent` becomes hidden alias
+- CLI: `show` now accepts both bookmark ID and session ID
+- Docs: add TUI shortcut reference and CLI options to README
+
 ## v0.1.2
 
 Browse mode overhaul — inline editing, mode-based UI, and quality-of-life improvements.

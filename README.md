@@ -27,25 +27,70 @@ aweshelf lets you save your favorite Claude Code and Codex sessions, tag them wi
 
 ## Install
 
+### Ask an AI agent
+
+If you are working inside Claude Code, Codex, Cursor, or another coding agent, tell it:
+
+```text
+Read https://github.com/Webioinfo01/aweshelf/blob/main/README.ai.md and follow it to install aweshelf for this agent.
+```
+
+The agent will first install the `aweshelf` CLI, then choose one of two skill management options:
+
+1. **Via [aweskill](https://aweskill.webioinfo.top/)** — installs and manages the skill from GitHub with update, projection, and backup support. Requires Node.js.
+2. **Direct copy** — downloads `SKILL.md` into the agent's skill directory. No extra dependencies beyond Python, but future updates require copying the file again manually.
+
+### pip
+
 ```bash
 pip install aweshelf
 ```
 
-## Quick Start
+## Usage
+
+### AI Agent
+
+Install the aweshelf skill (see [Install](#install) above), then just tell your agent what to do.
+
+**Example requests:**
+
+> "Bookmark the current session."
+
+> "List my bookmarks in the backend category."
+
+> "Resume bookmark aweshelf_0003."
+
+> "Search for bookmarks related to auth."
+
+The agent uses the [SKILL.md](resources/skills/aweshelf/SKILL.md) to understand all available commands and workflows.
+
+### Human
+
+The primary way to use aweshelf interactively is the TUI:
 
 ```bash
-# Bookmark the current project's most recent session
-aweshelf bookmark
-
-# List all bookmarks
-aweshelf list
-
-# Resume a bookmark
-aweshelf resume aweshelf_0001
-
-# Browse interactively
 aweshelf browse
 ```
+
+<!-- TODO: add screenshots
+  Suggested screenshots:
+  1. aweshelf browse main view — sidebar table with bookmark list + right detail pane
+  2. Category-grouped view (press `c`) — bookmarks grouped by category
+  3. Inline edit mode (press `e`) — editing title/category/profile in-place
+-->
+
+`aweshelf browse` opens an interactive terminal UI with a sidebar table and detail pane. Browse, search, edit, and resume bookmarks without memorizing commands.
+
+You can also use aweshelf as a regular CLI:
+
+```bash
+aweshelf bookmark                    # bookmark the current session
+aweshelf list                        # list all bookmarks
+aweshelf resume aweshelf_0001        # resume a bookmark
+aweshelf search "auth"               # search bookmarks
+```
+
+See [Commands](#commands) below for the full CLI reference.
 
 ## Config
 

@@ -27,25 +27,70 @@ aweshelf 可以保存你常用的 Claude Code 和 Codex 会话，用分类标记
 
 ## 安装
 
+### 让 AI agent 安装
+
+如果你在 Claude Code、Codex、Cursor 等 coding agent 中工作，直接告诉它：
+
+```text
+Read https://github.com/Webioinfo01/aweshelf/blob/main/README.ai.md and follow it to install aweshelf for this agent.
+```
+
+Agent 会先安装 `aweshelf` CLI，然后在下面两种 skill 管理方式中选择一种：
+
+1. **通过 [aweskill](https://aweskill.webioinfo.top/)** — 从 GitHub 安装和管理 skill，支持更新、投影和备份。需要 Node.js。
+2. **直接复制** — 将 `SKILL.md` 下载到 agent 的 skill 目录。除 Python 外无需额外依赖，但后续更新需要手动重新复制。
+
+### pip
+
 ```bash
 pip install aweshelf
 ```
 
-## 快速开始
+## 使用
+
+### AI Agent
+
+安装 aweshelf skill（见上方[安装](#安装)），然后直接告诉你的 agent 做什么。
+
+**你可以这样告诉你的 agent：**
+
+> "收藏当前会话。"
+
+> "列出 backend 分类下的书签。"
+
+> "恢复书签 aweshelf_0003。"
+
+> "搜索和 auth 相关的书签。"
+
+Agent 通过 [SKILL.md](resources/skills/aweshelf/SKILL.md) 理解所有可用命令和工作流。
+
+### 人类使用
+
+主要的交互方式是 TUI：
 
 ```bash
-# 收藏当前项目最近的会话
-aweshelf bookmark
-
-# 列出所有收藏
-aweshelf list
-
-# 恢复收藏的会话
-aweshelf resume aweshelf_0001
-
-# 交互式浏览
 aweshelf browse
 ```
+
+<!-- TODO: add screenshots
+  建议截图：
+  1. aweshelf browse 主界面 — 左侧书签列表表格 + 右侧详情面板
+  2. 分类分组视图（按 `c`） — 书签按分类分组显示
+  3. 内联编辑模式（按 `e`） — 就地编辑标题/分类/配置
+-->
+
+`aweshelf browse` 打开交互式终端 UI，左侧为书签表格，右侧为详情面板。无需记忆命令，直接浏览、搜索、编辑和恢复书签。
+
+也可以直接调用 CLI 命令：
+
+```bash
+aweshelf bookmark                    # 收藏当前会话
+aweshelf list                        # 列出所有书签
+aweshelf resume aweshelf_0001        # 恢复书签
+aweshelf search "auth"               # 搜索书签
+```
+
+完整命令参考见下方[命令](#命令)。
 
 ## 配置
 

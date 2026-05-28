@@ -48,9 +48,8 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("aweshelf.sortBookmarks", async () => {
       const selected = await vscode.window.showQuickPick(
         [
-          { label: "Title", value: "title" as BookmarkSortBy },
-          { label: "Recent", value: "recent" as BookmarkSortBy },
-          { label: "ID", value: "id" as BookmarkSortBy }
+          { label: "ID", value: "id" as BookmarkSortBy },
+          { label: "Recent", value: "recent" as BookmarkSortBy }
         ],
         { placeHolder: "Sort aweshelf bookmarks" }
       );

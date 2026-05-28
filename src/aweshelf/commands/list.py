@@ -66,11 +66,21 @@ def list_command(category, provider, sort_by, limit, as_json):
 
 @click.command("search")
 @click.argument("query")
+@click.option("-c", "--category", default=None, help="Filter by category.")
+@click.option("-p", "--provider", default=None, help="Filter by provider.")
+@click.option("-s", "--sort", "sort_by", type=click.Choice(["id", "recent"]), default="id",
+              help="Sort order (default: id).")
 @click.option("--json", "as_json", is_flag=True, help="Output as raw JSON.")
-def search_command(query, as_json):
+def search_command(query, category, provider, sort_by, as_json):
     """Search bookmarks by title, category, session ID, project, or profile."""
     bookmarks = load_bookmarks()
     results = filter_bookmarks(bookmarks, query)
+    if category:
+        results = [b for b in results if b.category == category]
+    if provider:
+        results = [b for b in results if b.provider == provider]
+    if sort_by == "recent":
+        results.sort(key=lambda b: b.bookmarked_at, reverse=True)
     click.echo(format_json(results) if as_json else format_table(results))
 
 

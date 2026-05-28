@@ -47,9 +47,25 @@ export interface ResumeDryRunTarget {
   warning?: string | null;
 }
 
-export function buildListArgs(query?: string): string[] {
+export interface ListOptions {
+  sortBy?: "title" | "recent" | "id";
+  provider?: string;
+  category?: string;
+}
+
+export function buildListArgs(query?: string, options: ListOptions = {}): string[] {
   const trimmed = query?.trim() ?? "";
-  return trimmed ? ["search", trimmed, "--json"] : ["list", "--json"];
+  const args = trimmed ? ["search", trimmed, "--json"] : ["list", "--json"];
+  if (options.sortBy === "recent") {
+    args.push("--sort", "recent");
+  }
+  if (options.provider) {
+    args.push("--provider", options.provider);
+  }
+  if (options.category) {
+    args.push("--category", options.category);
+  }
+  return args;
 }
 
 export function buildVersionArgs(): string[] {
@@ -187,8 +203,8 @@ export class AweshelfService {
     this.extraEnv = options.env;
   }
 
-  async listBookmarks(query?: string): Promise<AweshelfBookmark[]> {
-    const stdout = await this.runJsonCommand(buildListArgs(query));
+  async listBookmarks(query?: string, options: ListOptions = {}): Promise<AweshelfBookmark[]> {
+    const stdout = await this.runJsonCommand(buildListArgs(query, options));
     const parsed = JSON.parse(stdout);
     if (!Array.isArray(parsed)) {
       throw new Error("aweshelf returned JSON that is not an array");

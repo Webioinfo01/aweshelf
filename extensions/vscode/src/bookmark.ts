@@ -15,7 +15,7 @@ export interface BookmarkGroup {
   bookmarks: AweshelfBookmark[];
 }
 
-export type BookmarkSortBy = "title" | "recent" | "id";
+export type BookmarkSortBy = "recent" | "id";
 
 export interface BookmarkViewOptions {
   sortBy?: BookmarkSortBy;
@@ -30,28 +30,10 @@ export function normalizeCategory(category: string | undefined | null): string {
   return trimmed ? trimmed : UNCATEGORIZED_CATEGORY;
 }
 
-export function filterBookmarks(
-  bookmarks: AweshelfBookmark[],
-  options: BookmarkViewOptions = {}
-): AweshelfBookmark[] {
-  return bookmarks.filter((bookmark) => {
-    if (options.provider && bookmark.provider !== options.provider) {
-      return false;
-    }
-    if (options.category && normalizeCategory(bookmark.category) !== options.category) {
-      return false;
-    }
-    return true;
-  });
-}
-
-export function groupBookmarks(
-  bookmarks: AweshelfBookmark[],
-  options: BookmarkViewOptions = {}
-): BookmarkGroup[] {
+export function groupBookmarks(bookmarks: AweshelfBookmark[]): BookmarkGroup[] {
   const grouped = new Map<string, AweshelfBookmark[]>();
 
-  for (const bookmark of filterBookmarks(bookmarks, options)) {
+  for (const bookmark of bookmarks) {
     const category = normalizeCategory(bookmark.category);
     const current = grouped.get(category) ?? [];
     current.push(bookmark);
@@ -62,9 +44,7 @@ export function groupBookmarks(
     .sort(([left], [right]) => compareCategories(left, right))
     .map(([category, categoryBookmarks]) => ({
       category,
-      bookmarks: [...categoryBookmarks].sort((left, right) =>
-        compareBookmarks(left, right, options.sortBy ?? "title")
-      )
+      bookmarks: categoryBookmarks
     }));
 }
 
@@ -76,29 +56,4 @@ function compareCategories(left: string, right: string): number {
     return -1;
   }
   return left.localeCompare(right);
-}
-
-function compareBookmarks(
-  left: AweshelfBookmark,
-  right: AweshelfBookmark,
-  sortBy: BookmarkSortBy
-): number {
-  if (sortBy === "recent") {
-    const byDate = right.bookmarked_at.localeCompare(left.bookmarked_at);
-    if (byDate !== 0) {
-      return byDate;
-    }
-  }
-
-  if (sortBy === "id") {
-    return left.id.localeCompare(right.id);
-  }
-
-  if (sortBy === "title" || sortBy === "recent") {
-    const byTitle = left.title.localeCompare(right.title);
-    if (byTitle !== 0) {
-      return byTitle;
-    }
-  }
-  return left.id.localeCompare(right.id);
 }

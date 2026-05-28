@@ -1,13 +1,8 @@
 import * as vscode from "vscode";
 
 import { AweshelfService, formatCommandError } from "./aweshelfService";
-import {
-  AweshelfBookmark,
-  BookmarkGroup,
-  BookmarkSortBy,
-  BookmarkViewOptions,
-  groupBookmarks
-} from "./bookmark";
+import { AweshelfBookmark, BookmarkGroup, BookmarkSortBy, BookmarkViewOptions, groupBookmarks } from "./bookmark";
+import { ListOptions } from "./aweshelfService";
 
 type TreeNode = CategoryNode | BookmarkNode;
 
@@ -26,7 +21,7 @@ export class BookmarkNode {
 export class BookmarkTreeProvider implements vscode.TreeDataProvider<TreeNode> {
   private service: AweshelfService;
   private query = "";
-  private options: BookmarkViewOptions = { sortBy: "title" };
+  private options: BookmarkViewOptions = { sortBy: "id" };
   private readonly onDidChangeTreeDataEmitter = new vscode.EventEmitter<TreeNode | undefined>();
 
   readonly onDidChangeTreeData = this.onDidChangeTreeDataEmitter.event;
@@ -65,7 +60,7 @@ export class BookmarkTreeProvider implements vscode.TreeDataProvider<TreeNode> {
 
   clearFilters(): void {
     this.query = "";
-    this.options = { sortBy: this.options.sortBy ?? "title" };
+    this.options = { sortBy: this.options.sortBy ?? "id" };
     this.refresh();
   }
 
@@ -83,8 +78,13 @@ export class BookmarkTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     }
 
     try {
-      const bookmarks = await this.service.listBookmarks(this.query);
-      return groupBookmarks(bookmarks, this.options).map((group) => new CategoryNode(group));
+      const listOptions: ListOptions = {
+        sortBy: this.options.sortBy,
+        provider: this.options.provider,
+        category: this.options.category
+      };
+      const bookmarks = await this.service.listBookmarks(this.query, listOptions);
+      return groupBookmarks(bookmarks).map((group) => new CategoryNode(group));
     } catch (error) {
       void vscode.window.showErrorMessage(formatCommandError(error));
       return [];

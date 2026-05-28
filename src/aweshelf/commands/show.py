@@ -4,15 +4,23 @@ import json
 
 import click
 
-from aweshelf.lib.store import find_bookmark, update_bookmark, remove_bookmark
+from aweshelf.lib.store import find_bookmark, find_by_session_id, update_bookmark, remove_bookmark
+
+
+def _resolve_bookmark(identifier: str):
+    """Resolve a bookmark by ID first, then by session ID."""
+    b = find_bookmark(identifier)
+    if b is not None:
+        return b
+    return find_by_session_id(identifier)
 
 
 @click.command("show")
 @click.argument("bookmark_id")
 @click.option("--json", "as_json", is_flag=True, help="Output as raw JSON.")
 def show_command(bookmark_id, as_json):
-    """Show bookmark details."""
-    b = find_bookmark(bookmark_id)
+    """Show bookmark details (accepts bookmark ID or session ID)."""
+    b = _resolve_bookmark(bookmark_id)
     if b is None:
         raise click.ClickException(f"bookmark not found: {bookmark_id}")
     if as_json:

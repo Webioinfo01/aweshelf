@@ -31,22 +31,6 @@ cli.add_command(resume_command)
 cli.add_command(browse_command)
 
 
-@cli.command("help")
-@click.argument("command_name", required=False)
-@click.pass_context
-def help_command(ctx, command_name):
-    """Display help for command."""
-    if command_name is None:
-        click.echo(ctx.parent.get_help())
-        return
-
-    command = cli.get_command(ctx, command_name)
-    if command is None or command.hidden:
-        raise click.ClickException(f"unknown command '{command_name}'")
-    with command.make_context(command_name, [], parent=ctx.parent, resilient_parsing=True) as command_ctx:
-        click.echo(command.get_help(command_ctx))
-
-
 def main(argv=None):
     return cli.main(args=argv, prog_name="aweshelf")
 

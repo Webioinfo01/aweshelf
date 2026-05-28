@@ -1,5 +1,6 @@
 """Tests for CLI commands."""
 
+import json
 import sys
 import tempfile
 import unittest
@@ -33,12 +34,17 @@ class CliTests(unittest.TestCase):
         self.assertIn("browse", result.output)
         self.assertIn("list", result.output)
         self.assertIn("search", result.output)
-        self.assertIn("recent", result.output)
         self.assertIn("show", result.output)
         self.assertIn("edit", result.output)
         self.assertIn("rm", result.output)
         self.assertIn("resume", result.output)
-        self.assertIn("help", result.output)
+
+    def test_help_hides_recent_and_help_commands(self):
+        result = CliRunner().invoke(aweshelf.cli, ["-h"])
+        self.assertEqual(result.exit_code, 0)
+        # "recent" should not appear as a command in the commands list
+        self.assertNotIn("\n  recent ", result.output)
+        self.assertNotIn("\n  help ", result.output)
 
     def test_version_option(self):
         import aweshelf as pkg
@@ -184,6 +190,95 @@ class BookmarkCommandTests(unittest.TestCase):
         result = runner.invoke(aweshelf.cli, ["bookmark", "sess-001", "-t", "Second", "-c", "cat"])
         self.assertNotEqual(result.exit_code, 0)
         self.assertIn("already bookmarked", result.output)
+
+
+class ListCommandTests(unittest.TestCase):
+    def _run_with_data(self, args):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "bookmarks.json"
+            path.write_text(json.dumps({
+                "version": 1,
+                "bookmarks": [
+                    {
+                        "id": "aweshelf_0001",
+                        "provider": "claude",
+                        "session_id": "sess-001",
+                        "title": "First",
+                        "category": "backend",
+                        "project_path": "/tmp",
+                        "aweswitch_profile": "cc-glm",
+                        "bookmarked_at": "2026-01-01T00:00:00",
+                    },
+                    {
+                        "id": "aweshelf_0002",
+                        "provider": "codex",
+                        "session_id": "sess-002",
+                        "title": "Second",
+                        "category": "frontend",
+                        "project_path": "/tmp",
+                        "aweswitch_profile": "codex",
+                        "bookmarked_at": "2026-05-01T00:00:00",
+                    },
+                ],
+            }))
+            env = {"AWESHELF_CONFIG": str(path)}
+            return CliRunner(env=env).invoke(aweshelf.cli, args)
+
+    def test_list_sort_recent(self):
+        result = self._run_with_data(["list", "--sort", "recent"])
+        self.assertEqual(result.exit_code, 0)
+        lines = result.output.strip().splitlines()
+        self.assertIn("sess-002", lines[2])
+
+    def test_list_limit(self):
+        result = self._run_with_data(["list", "-n", "1"])
+        self.assertEqual(result.exit_code, 0)
+        lines = result.output.strip().splitlines()
+        self.assertEqual(len(lines), 3)
+
+    def test_list_sort_recent_with_limit(self):
+        result = self._run_with_data(["list", "--sort", "recent", "-n", "1"])
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn("sess-002", result.output)
+        self.assertNotIn("sess-001", result.output)
+
+
+class ShowCommandTests(unittest.TestCase):
+    def _run_with_data(self, args):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "bookmarks.json"
+            path.write_text(json.dumps({
+                "version": 1,
+                "bookmarks": [
+                    {
+                        "id": "aweshelf_0001",
+                        "provider": "claude",
+                        "session_id": "sess-001",
+                        "title": "Test",
+                        "category": "backend",
+                        "project_path": "/tmp",
+                        "aweswitch_profile": "cc-glm",
+                        "bookmarked_at": "2026-01-01T00:00:00",
+                    },
+                ],
+            }))
+            env = {"AWESHELF_CONFIG": str(path)}
+            return CliRunner(env=env).invoke(aweshelf.cli, args)
+
+    def test_show_by_id(self):
+        result = self._run_with_data(["show", "aweshelf_0001"])
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn("Test", result.output)
+
+    def test_show_by_session_id(self):
+        result = self._run_with_data(["show", "sess-001"])
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn("Test", result.output)
+
+    def test_show_not_found(self):
+        result = self._run_with_data(["show", "nonexistent"])
+        self.assertNotEqual(result.exit_code, 0)
+        self.assertIn("not found", result.output)
 
 
 class SearchCommandTests(unittest.TestCase):

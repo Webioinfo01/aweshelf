@@ -40,13 +40,20 @@ def format_table(bookmarks: list) -> str:
 @click.command("list")
 @click.option("-c", "--category", default=None, help="Filter by category.")
 @click.option("-p", "--provider", default=None, help="Filter by provider.")
-def list_command(category, provider):
+@click.option("-s", "--sort", "sort_by", type=click.Choice(["id", "recent"]), default="id",
+              help="Sort order (default: id).")
+@click.option("-n", "--limit", default=0, type=int, help="Max rows to show (0 = all).")
+def list_command(category, provider, sort_by, limit):
     """List all bookmarks."""
     bookmarks = load_bookmarks()
     if category:
         bookmarks = [b for b in bookmarks if b.category == category]
     if provider:
         bookmarks = [b for b in bookmarks if b.provider == provider]
+    if sort_by == "recent":
+        bookmarks.sort(key=lambda b: b.bookmarked_at, reverse=True)
+    if limit > 0:
+        bookmarks = bookmarks[:limit]
     click.echo(format_table(bookmarks))
 
 
@@ -67,10 +74,10 @@ def search_command(query):
     click.echo(format_table(results))
 
 
-@click.command("recent")
+@click.command("recent", hidden=True)
 @click.option("-n", "--count", default=10, help="Number of recent bookmarks.")
 def recent_command(count):
-    """Show recently bookmarked sessions."""
+    """Show recently bookmarked sessions (alias for: list --sort recent -n N)."""
     bookmarks = load_bookmarks()
     bookmarks.sort(key=lambda b: b.bookmarked_at, reverse=True)
     click.echo(format_table(bookmarks[:count]))

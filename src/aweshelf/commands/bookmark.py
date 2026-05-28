@@ -2,35 +2,81 @@
 
 import click
 
-from aweshelf.lib.aweswitch import detect_profile, load_aweswitch_config, profile_exists
+from aweshelf.lib.aweswitch import (
+    detect_profile,
+    load_aweswitch_config,
+    profiles_for_provider,
+)
 from aweshelf.lib.discovery import find_project_sessions, find_recent_session
 from aweshelf.lib.session import parse_session_meta
-from aweshelf.lib.store import add_bookmark, bookmark_path, list_categories
+from aweshelf.lib.store import (
+    add_bookmark,
+    bookmark_path,
+    list_categories,
+    load_bookmarks,
+    save_bookmarks,
+)
 from aweshelf.types import Bookmark
 
 DEFAULT_LIST_LIMIT = 10
+AWESWITCH_URL = "https://github.com/Webioinfo01/aweswitch"
 
 
-def _validate_profile(profile: str | None, config: dict | None) -> str | None:
+def _validate_profile(profile: str | None, provider: str, config: dict | None) -> str | None:
     if not profile:
         return None
-    if not config or not profile_exists(profile, config):
+    if provider != "claude":
+        raise click.ClickException("aweswitch profile is currently supported for claude sessions only")
+    if not config or profile not in profiles_for_provider(provider, config):
         raise click.ClickException(f"aweswitch profile not found: {profile}")
     return profile
 
 
-def _prompt_profile(default_profile: str | None, config: dict | None) -> str | None:
+def _prompt_profile(default_profile: str | None, provider: str, config: dict | None) -> str | None:
+    if provider != "claude":
+        return None
+    if not config:
+        click.echo(f"aweswitch config not found; profile selection skipped. See {AWESWITCH_URL}")
+        return default_profile
+    available_profiles = profiles_for_provider("claude", config)
+    if not available_profiles:
+        click.echo(f"No Claude profiles found in aweswitch config; profile selection skipped. See {AWESWITCH_URL}")
+        return default_profile
+
+    if default_profile not in available_profiles:
+        default_profile = None
+    click.echo(f"Available Claude profiles: {', '.join(available_profiles)}")
+    prompt = (
+        "Profile (blank keeps default)"
+        if default_profile
+        else "Profile (blank stores no profile)"
+    )
     while True:
-        profile_input = click.prompt("Profile", default=default_profile or "", show_default=False)
+        profile_input = click.prompt(prompt, default=default_profile or "", show_default=False)
         if not profile_input:
             return None
-        if config and profile_exists(profile_input, config):
+        if profile_input in available_profiles:
             return profile_input
         click.echo(f"aweswitch profile not found: {profile_input}")
 
 
-def pick_session(sessions: list[dict], limit: int = DEFAULT_LIST_LIMIT) -> dict:
+def _replace_bookmark(bookmark: Bookmark, path) -> Bookmark:
+    bookmarks = load_bookmarks(path)
+    for index, existing in enumerate(bookmarks):
+        if existing.id == bookmark.id:
+            bookmarks[index] = bookmark
+            save_bookmarks(bookmarks, path)
+            return bookmark
+    raise ValueError(f"bookmark not found: {bookmark.id}")
+
+
+def pick_session(
+    sessions: list[dict],
+    limit: int = DEFAULT_LIST_LIMIT,
+    existing_by_session: dict[str, Bookmark] | None = None,
+) -> dict:
     """Let user pick a session from a numbered list."""
+    existing_by_session = existing_by_session or {}
     shown = sessions[:limit]
     total = len(sessions)
 
@@ -43,7 +89,9 @@ def pick_session(sessions: list[dict], limit: int = DEFAULT_LIST_LIMIT) -> dict:
         title = s.get("title", "Untitled")
         provider = s.get("provider", "?")
         sid = s.get("session_id", "?")
-        click.echo(f"  {i:>3}. [{provider}] {title}")
+        existing = existing_by_session.get(sid)
+        suffix = f"  bookmarked {existing.id}" if existing else ""
+        click.echo(f"  {i:>3}. [{provider}] {title}{suffix}")
         click.echo(f"       {sid}")
 
     if total > limit:
@@ -67,14 +115,23 @@ def run_bookmark(
 ) -> Bookmark:
     path = bookmark_path()
     picked_interactively = session_id is None and interactive
+    existing_bookmark = None
 
     if picked_interactively:
         sessions = find_project_sessions()
         if not sessions:
             raise SystemExit("aweshelf: no session found in current project")
         limit = len(sessions) if verbose else DEFAULT_LIST_LIMIT
-        session = pick_session(sessions, limit)
+        existing_by_session = {b.session_id: b for b in load_bookmarks(path)}
+        session = pick_session(sessions, limit, existing_by_session)
         session_id = session["session_id"]
+        existing_bookmark = existing_by_session.get(session_id)
+        if existing_bookmark and not click.confirm(
+            f"Session already bookmarked as {existing_bookmark.id}. Update it?",
+            default=False,
+        ):
+            click.echo("Bookmark unchanged.")
+            raise SystemExit(0)
         source_path = session.get("source_path", "")
         provider = session.get("provider", "claude")
         auto_title = session.get("title", "")
@@ -98,16 +155,21 @@ def run_bookmark(
         project_path = ""
 
     if title is None:
-        title = auto_title or first_prompt[:80] or "Untitled session"
+        title = (
+            existing_bookmark.title
+            if existing_bookmark
+            else auto_title or first_prompt[:80] or "Untitled session"
+        )
         if picked_interactively:
-            title = click.prompt("Title", default=title, show_default=False)
+            title = click.prompt("Title (blank keeps current/default title)", default=title, show_default=False)
 
     if interactive and category is None:
         cats = list_categories(path)
         click.echo()
         if cats:
             click.echo(f"Existing categories: {', '.join(cats)}")
-        cat_input = click.prompt("Category", default="", show_default=False)
+        category_default = existing_bookmark.category if existing_bookmark else ""
+        cat_input = click.prompt("Category", default=category_default, show_default=False)
         category = cat_input if cat_input else ""
 
     if category is None:
@@ -124,12 +186,14 @@ def run_bookmark(
             pass
 
     if picked_interactively:
-        profile = _prompt_profile(profile, config)
+        if existing_bookmark and profile is None:
+            profile = existing_bookmark.aweswitch_profile
+        profile = _prompt_profile(profile, provider, config)
     else:
-        profile = _validate_profile(profile, config)
+        profile = _validate_profile(profile, provider, config)
 
     bookmark = Bookmark(
-        id="",
+        id=existing_bookmark.id if existing_bookmark else "",
         provider=provider,
         session_id=session_id,
         title=title,
@@ -139,7 +203,13 @@ def run_bookmark(
         aweswitch_profile=profile,
     )
 
+    if existing_bookmark:
+        bookmark = _replace_bookmark(bookmark, path)
+        bookmark._aweshelf_status = "updated"
+        return bookmark
+
     bookmark = add_bookmark(bookmark, path)
+    bookmark._aweshelf_status = "bookmarked"
     return bookmark
 
 
@@ -155,4 +225,6 @@ def bookmark_command(session_id, title, category, profile, verbose):
         b = run_bookmark(session_id, title, category, profile, interactive=True, verbose=verbose)
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
-    click.echo(f"\nBookmarked {b.id} — {b.title}")
+    status = getattr(b, "_aweshelf_status", "bookmarked")
+    verb = "Updated" if status == "updated" else "Bookmarked"
+    click.echo(f"\n{verb} {b.id} — {b.title}")

@@ -86,7 +86,7 @@ aweshelf help [COMMAND]
 ## Browse (TUI)
 
 `aweshelf browse` opens an interactive TUI with a sidebar table and detail pane.
-`aweshelf bookmark` prompts for title, category, and aweswitch profile when picking a session interactively. Profiles must exist in aweswitch config.
+`aweshelf bookmark` marks already-bookmarked sessions and can update them after confirmation. Interactive bookmarking prompts for title, category, and Claude aweswitch profile; profile selection is skipped when aweswitch is not configured.
 
 | Key | Action |
 |-----|--------|

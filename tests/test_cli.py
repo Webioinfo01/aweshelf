@@ -154,7 +154,7 @@ class BookmarkCommandTests(unittest.TestCase):
     @patch("aweshelf.commands.bookmark.load_aweswitch_config", return_value=None)
     def test_bookmark_picks_session_interactively(self, mock_config, mock_detect, mock_sessions):
         runner, path = self._run_with_config(["bookmark"])
-        result = runner.invoke(aweshelf.cli, ["bookmark"], input="1\nFix login\nbackend\n\n")
+        result = runner.invoke(aweshelf.cli, ["bookmark"], input="1\nFix login\nbackend\n")
         self.assertEqual(result.exit_code, 0, result.output)
         self.assertIn("Bookmarked aweshelf_0001", result.output)
         bookmarks = load_bookmarks(path)
@@ -177,7 +177,10 @@ class BookmarkCommandTests(unittest.TestCase):
 
     @patch("aweshelf.commands.bookmark.find_project_sessions", return_value=MOCK_SESSIONS)
     @patch("aweshelf.commands.bookmark.detect_profile", return_value="cc-glm")
-    @patch("aweshelf.commands.bookmark.load_aweswitch_config", return_value={"profiles": {"claude": {"cc-glm": {"env": {}}}}})
+    @patch(
+        "aweshelf.commands.bookmark.load_aweswitch_config",
+        return_value={"profiles": {"claude": {"cc-glm": {"env": {}}}}},
+    )
     def test_bookmark_interactive_accepts_existing_profile(self, mock_config, mock_detect, mock_sessions):
         runner, path = self._run_with_config(["bookmark"])
         result = runner.invoke(aweshelf.cli, ["bookmark"], input="1\n\nbackend\ncc-glm\n")
@@ -188,7 +191,10 @@ class BookmarkCommandTests(unittest.TestCase):
 
     @patch("aweshelf.commands.bookmark.find_project_sessions", return_value=MOCK_SESSIONS)
     @patch("aweshelf.commands.bookmark.detect_profile", return_value=None)
-    @patch("aweshelf.commands.bookmark.load_aweswitch_config", return_value={"profiles": {"claude": {"cc-glm": {"env": {}}}}})
+    @patch(
+        "aweshelf.commands.bookmark.load_aweswitch_config",
+        return_value={"profiles": {"claude": {"cc-glm": {"env": {}}}}},
+    )
     def test_bookmark_interactive_retries_unknown_profile(self, mock_config, mock_detect, mock_sessions):
         runner, path = self._run_with_config(["bookmark"])
         result = runner.invoke(aweshelf.cli, ["bookmark"], input="1\n\nbackend\nmissing\ncc-glm\n")
@@ -198,7 +204,44 @@ class BookmarkCommandTests(unittest.TestCase):
         bookmarks = load_bookmarks(path)
         self.assertEqual(bookmarks[0].aweswitch_profile, "cc-glm")
 
-    @patch("aweshelf.commands.bookmark.load_aweswitch_config", return_value={"profiles": {"claude": {"cc-glm": {"env": {}}}}})
+    @patch("aweshelf.commands.bookmark.find_project_sessions", return_value=MOCK_SESSIONS)
+    @patch("aweshelf.commands.bookmark.detect_profile", return_value=None)
+    @patch("aweshelf.commands.bookmark.load_aweswitch_config", return_value=None)
+    def test_bookmark_marks_and_updates_existing_session(self, mock_config, mock_detect, mock_sessions):
+        runner, path = self._run_with_config(["bookmark"])
+        runner.invoke(aweshelf.cli, ["bookmark", "sess-001", "-t", "First", "-c", "cat"])
+
+        result = runner.invoke(aweshelf.cli, ["bookmark"], input="1\ny\nUpdated\nnewcat\n")
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertIn("bookmarked aweshelf_0001", result.output)
+        self.assertIn("Session already bookmarked as aweshelf_0001. Update it?", result.output)
+        self.assertIn("Updated aweshelf_0001", result.output)
+
+        bookmarks = load_bookmarks(path)
+        self.assertEqual(len(bookmarks), 1)
+        self.assertEqual(bookmarks[0].id, "aweshelf_0001")
+        self.assertEqual(bookmarks[0].title, "Updated")
+        self.assertEqual(bookmarks[0].category, "newcat")
+
+    @patch("aweshelf.commands.bookmark.find_project_sessions", return_value=MOCK_SESSIONS)
+    @patch("aweshelf.commands.bookmark.detect_profile", return_value=None)
+    @patch("aweshelf.commands.bookmark.load_aweswitch_config", return_value=None)
+    def test_bookmark_existing_session_can_cancel_update(self, mock_config, mock_detect, mock_sessions):
+        runner, path = self._run_with_config(["bookmark"])
+        runner.invoke(aweshelf.cli, ["bookmark", "sess-001", "-t", "First", "-c", "cat"])
+
+        result = runner.invoke(aweshelf.cli, ["bookmark"], input="1\n\n")
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertIn("Bookmark unchanged.", result.output)
+
+        bookmarks = load_bookmarks(path)
+        self.assertEqual(bookmarks[0].title, "First")
+        self.assertEqual(bookmarks[0].category, "cat")
+
+    @patch(
+        "aweshelf.commands.bookmark.load_aweswitch_config",
+        return_value={"profiles": {"claude": {"cc-glm": {"env": {}}}}},
+    )
     def test_bookmark_with_unknown_profile_errors(self, mock_config):
         runner, _ = self._run_with_config(["bookmark"])
         result = runner.invoke(
@@ -207,6 +250,61 @@ class BookmarkCommandTests(unittest.TestCase):
         )
         self.assertNotEqual(result.exit_code, 0)
         self.assertIn("aweswitch profile not found: missing", result.output)
+
+    @patch(
+        "aweshelf.commands.bookmark.load_aweswitch_config",
+        return_value={"profiles": {"claude": {"cc-glm": {"env": {}}}, "codex": {"codex-openai": {"env": {}}}}},
+    )
+    def test_bookmark_profile_must_match_claude_profiles(self, mock_config):
+        runner, _ = self._run_with_config(["bookmark"])
+        result = runner.invoke(
+            aweshelf.cli,
+            ["bookmark", "sess-999", "-t", "My session", "-c", "test", "--profile", "codex-openai"],
+        )
+        self.assertNotEqual(result.exit_code, 0)
+        self.assertIn("aweswitch profile not found: codex-openai", result.output)
+
+    @patch("aweshelf.commands.bookmark.find_project_sessions", return_value=MOCK_SESSIONS)
+    @patch("aweshelf.commands.bookmark.detect_profile", return_value=None)
+    @patch(
+        "aweshelf.commands.bookmark.load_aweswitch_config",
+        return_value={"profiles": {"claude": {"cc-glm": {"env": {}}}, "codex": {"codex-openai": {"env": {}}}}},
+    )
+    def test_bookmark_profile_prompt_shows_claude_profiles_only(self, mock_config, mock_detect, mock_sessions):
+        runner, _ = self._run_with_config(["bookmark"])
+        result = runner.invoke(aweshelf.cli, ["bookmark"], input="1\n\nbackend\n\n")
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertIn("Available Claude profiles: cc-glm", result.output)
+        self.assertNotIn("codex-openai", result.output)
+        self.assertIn("blank stores no profile", result.output)
+
+    @patch(
+        "aweshelf.commands.bookmark.find_project_sessions",
+        return_value=[{**MOCK_SESSIONS[0], "provider": "codex"}],
+    )
+    @patch("aweshelf.commands.bookmark.detect_profile", return_value=None)
+    @patch(
+        "aweshelf.commands.bookmark.load_aweswitch_config",
+        return_value={"profiles": {"claude": {"cc-glm": {"env": {}}}, "codex": {"codex-openai": {"env": {}}}}},
+    )
+    def test_bookmark_skips_profile_for_codex(self, mock_config, mock_detect, mock_sessions):
+        runner, path = self._run_with_config(["bookmark"])
+        result = runner.invoke(aweshelf.cli, ["bookmark"], input="1\n\nbackend\n")
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertNotIn("Profile", result.output)
+        self.assertNotIn("Available Claude profiles", result.output)
+        self.assertIsNone(load_bookmarks(path)[0].aweswitch_profile)
+
+    @patch("aweshelf.commands.bookmark.find_project_sessions", return_value=MOCK_SESSIONS)
+    @patch("aweshelf.commands.bookmark.detect_profile", return_value=None)
+    @patch("aweshelf.commands.bookmark.load_aweswitch_config", return_value=None)
+    def test_bookmark_skips_profile_when_aweswitch_missing(self, mock_config, mock_detect, mock_sessions):
+        runner, path = self._run_with_config(["bookmark"])
+        result = runner.invoke(aweshelf.cli, ["bookmark"], input="1\n\nbackend\n")
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertIn("aweswitch config not found; profile selection skipped.", result.output)
+        self.assertIn("https://github.com/Webioinfo01/aweswitch", result.output)
+        self.assertIsNone(load_bookmarks(path)[0].aweswitch_profile)
 
     @patch("aweshelf.commands.bookmark.find_project_sessions", return_value=[])
     def test_bookmark_no_sessions_exits(self, mock_sessions):
@@ -218,7 +316,7 @@ class BookmarkCommandTests(unittest.TestCase):
     @patch("aweshelf.commands.bookmark.find_project_sessions", return_value=MOCK_SESSIONS)
     @patch("aweshelf.commands.bookmark.detect_profile", return_value=None)
     @patch("aweshelf.commands.bookmark.load_aweswitch_config", return_value=None)
-    def test_bookmark_duplicate_session_errors(self, mock_config, mock_detect, mock_sessions):
+    def test_bookmark_duplicate_session_errors_non_interactive(self, mock_config, mock_detect, mock_sessions):
         runner, path = self._run_with_config(["bookmark"])
         runner.invoke(aweshelf.cli, ["bookmark", "sess-001", "-t", "First", "-c", "cat"])
         result = runner.invoke(aweshelf.cli, ["bookmark", "sess-001", "-t", "Second", "-c", "cat"])

@@ -65,6 +65,16 @@ def profile_exists(profile_name: str, config: dict | None = None) -> bool:
     return False
 
 
+def profiles_for_provider(provider: str, config: dict | None = None) -> list[str]:
+    config = config if config is not None else load_aweswitch_config()
+    if not config:
+        return []
+    profiles = config.get("profiles", {}).get(provider, {})
+    if not isinstance(profiles, dict):
+        return []
+    return sorted(profiles)
+
+
 def build_resume_command(provider: str, profile_name: str | None, session_id: str, raw: bool = False) -> list[str]:
     if raw or not profile_name:
         if provider == "codex":

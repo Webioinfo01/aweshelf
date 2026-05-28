@@ -221,7 +221,7 @@ class BrowseInteractionTests(unittest.IsolatedAsyncioTestCase):
 
             self.assertEqual(app._app_mode, MODE_EDIT)
             self.assertEqual(app._edit_attr, "title")
-            self.assertEqual(app.query_one("#table").cursor_type, "cell")
+            self.assertEqual(app.query_one("#table").cursor_type, "none")
             self.assertEqual(len(list(app.query(".edit-field"))), 0)
             app._edit_value = "Changed"
 
@@ -300,6 +300,54 @@ class BrowseInteractionTests(unittest.IsolatedAsyncioTestCase):
 
             self.assertEqual(app._app_mode, MODE_NORMAL)
             self.assertEqual(app.query_one("#table").cursor_type, "row")
+
+    async def test_resume_confirm_moving_selection_cancels_confirm(self):
+        from aweshelf.tui.app import MODE_NORMAL
+
+        app = BookmarkBrowser()
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            await pilot.press("down")
+            await pilot.pause()
+            await pilot.press("enter")
+            await pilot.pause()
+
+            self.assertEqual(app._app_mode, "confirm_resume")
+
+            await pilot.press("down")
+            await pilot.pause()
+
+            self.assertEqual(app._app_mode, MODE_NORMAL)
+            self.assertEqual(app._selected.id, "aweshelf_0002")
+            self.assertIn("aweshelf_0002", str(app.query_one("#detail-title").render()))
+
+    async def test_detail_labels_and_truncates_first_prompt(self):
+        data = json.loads(self.path.read_text())
+        data["bookmarks"][0]["first_prompt"] = "a" * 400 + " middle " + "z" * 400
+        self.path.write_text(json.dumps(data))
+
+        app = BookmarkBrowser()
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            await pilot.press("down")
+            await pilot.pause()
+
+            body = str(app.query_one("#detail-body").render())
+            self.assertIn("First prompt:", body)
+            self.assertNotIn("Prompt:", body)
+            self.assertIn("a" * 350, body)
+            self.assertIn("z" * 350, body)
+            self.assertNotIn(" middle ", body)
+
+    async def test_shortcuts_render_with_rich_highlights(self):
+        from textual.widgets import Static
+
+        app = BookmarkBrowser()
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            shortcuts = app.query_one("#shortcuts", Static)
+            renderable = shortcuts.render()
+            self.assertGreater(len(renderable.spans), 0)
 
     async def test_browse_search_matches_first_prompt_and_enter_returns_to_table(self):
         from textual.widgets import DataTable, Input

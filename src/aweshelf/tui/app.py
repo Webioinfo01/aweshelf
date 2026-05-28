@@ -14,6 +14,7 @@ from aweshelf.types import Bookmark
 SIDEBAR_FRAC = 60
 DETAIL_FRAC = 40
 MIN_FRAC = 10
+FIRST_PROMPT_EDGE_CHARS = 350
 CATEGORY_COLORS = ["green", "orange", "red", "cyan", "magenta"]
 MODE_ORDER = ["category", "all"]
 SORT_ORDER = ["cat_id", "id"]
@@ -173,7 +174,7 @@ class BookmarkBrowser(App):
             with Vertical(id="detail"):
                 yield Static("Select a bookmark to view details.", id="detail-title")
                 yield Static("", id="detail-body")
-        yield Static(NORMAL_SHORTCUT_TEXT, id="shortcuts")
+        yield Static(self._format_shortcuts(NORMAL_SHORTCUT_TEXT), id="shortcuts")
 
     def on_mount(self) -> None:
         table = self.query_one("#table", DataTable)
@@ -256,11 +257,22 @@ class BookmarkBrowser(App):
             return
         shortcuts = self.query_one("#shortcuts", Static)
         if self._app_mode == MODE_EDIT:
-            shortcuts.update(EDIT_SHORTCUT_TEXT)
+            shortcuts.update(self._format_shortcuts(EDIT_SHORTCUT_TEXT))
         elif self._app_mode in (MODE_CONFIRM_RESUME, MODE_CONFIRM_REMOVE):
-            shortcuts.update(CONFIRM_SHORTCUT_TEXT)
+            shortcuts.update(self._format_shortcuts(CONFIRM_SHORTCUT_TEXT))
         else:
-            shortcuts.update(NORMAL_SHORTCUT_TEXT)
+            shortcuts.update(self._format_shortcuts(NORMAL_SHORTCUT_TEXT))
+
+    def _format_shortcuts(self, value: str) -> Text:
+        text = Text()
+        for index, part in enumerate(value.split("   ")):
+            if index:
+                text.append("   ")
+            key, _, label = part.partition(" ")
+            text.append(key, style="bold cyan")
+            if label:
+                text.append(f" {label}", style="dim")
+        return text
 
     def _empty_state(self) -> None:
         msg = self.EMPTY_MESSAGE if not self._bookmarks else "No matches."
@@ -368,6 +380,14 @@ class BookmarkBrowser(App):
             self.action_resume()
 
     def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
+        if self._app_mode in (MODE_CONFIRM_RESUME, MODE_CONFIRM_REMOVE):
+            if event.row_key is None or self._is_cat_row(event.row_key.value):
+                return
+            if not self._selected or event.row_key.value != self._selected.id:
+                self._app_mode = MODE_NORMAL
+                self._update_shortcuts()
+                self._select_bookmark(event.row_key.value)
+            return
         if not self._is_normal():
             return
         if self._dragging:
@@ -389,7 +409,7 @@ class BookmarkBrowser(App):
         self.query_one("#detail-title", Static).update(f" {b.id}")
         lines = [
             f"Title:     {b.title}",
-            f"Prompt:    {b.first_prompt or '-'}",
+            f"First prompt: {self._format_first_prompt(b.first_prompt)}",
             f"Provider:  {b.provider}",
             f"Session:   {b.session_id}",
             f"Category:  {b.category or '-'}",
@@ -398,6 +418,13 @@ class BookmarkBrowser(App):
             f"Saved at:  {b.bookmarked_at}",
         ]
         self.query_one("#detail-body", Static).update("\n".join(lines))
+
+    def _format_first_prompt(self, value: str) -> str:
+        if not value:
+            return "-"
+        if len(value) <= FIRST_PROMPT_EDGE_CHARS * 2:
+            return value
+        return f"{value[:FIRST_PROMPT_EDGE_CHARS]}...{value[-FIRST_PROMPT_EDGE_CHARS:]}"
 
     # --- mode-gated actions ---
 
@@ -470,6 +497,12 @@ class BookmarkBrowser(App):
             return
 
         if self._app_mode in (MODE_CONFIRM_RESUME, MODE_CONFIRM_REMOVE):
+            if key == "down":
+                self._cancel_confirm_and_move_selection(1)
+                event.stop()
+            elif key == "up":
+                self._cancel_confirm_and_move_selection(-1)
+                event.stop()
             if key in ("y", "enter"):
                 self._confirm_execute()
                 event.stop()
@@ -538,7 +571,7 @@ class BookmarkBrowser(App):
         table = self.query_one("#table", DataTable)
         self._edit_attr = self._attr_for_column(table.cursor_column) or self._editable_attrs()[0]
         self._edit_value = self._value_for_attr(self._selected, self._edit_attr)
-        table.cursor_type = "cell"
+        table.cursor_type = "none"
         with suppress(Exception):
             table.move_cursor(
                 row=table.get_row_index(self._selected.id),
@@ -583,6 +616,23 @@ class BookmarkBrowser(App):
         self._edit_value = self._value_for_attr(self._selected, self._edit_attr)
         self._refresh_edit_row()
 
+    def _cancel_confirm_and_move_selection(self, delta: int) -> None:
+        self._app_mode = MODE_NORMAL
+        self._update_shortcuts()
+        if not self._selected or not self._visible_bookmark_ids:
+            return
+        try:
+            current_index = self._visible_bookmark_ids.index(self._selected.id)
+        except ValueError:
+            return
+        next_index = current_index + delta
+        if next_index < 0 or next_index >= len(self._visible_bookmark_ids):
+            if self._selected:
+                self._update_detail(self._selected)
+            return
+        self._select_bookmark(self._visible_bookmark_ids[next_index])
+        self._restore_selected_cursor(self.query_one("#table", DataTable))
+
     def _sync_edit_cursor(self) -> None:
         if not self._selected or not self._edit_attr:
             return
@@ -592,6 +642,7 @@ class BookmarkBrowser(App):
                 row=table.get_row_index(self._selected.id),
                 column=self._column_for_attr(self._edit_attr),
             )
+        table.cursor_type = "none"
         self.query_one("#detail-body", Static).update(
             f"{ATTR_COLUMNS[self._edit_attr]}: Enter saves this cell. Esc exits editing."
         )

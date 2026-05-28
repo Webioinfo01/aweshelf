@@ -86,7 +86,7 @@ aweshelf help [COMMAND]
 ## 浏览模式 (TUI)
 
 `aweshelf browse` 打开交互式 TUI，左侧为书签表格，右侧为详情面板。
-`aweshelf bookmark` 交互选择会话时会提示填写标题、分类和 aweswitch profile；profile 必须存在于 aweswitch 配置中。
+`aweshelf bookmark` 会标记已经收藏的会话，并可在确认后更新已有 bookmark。交互收藏时会提示填写标题、分类和 Claude aweswitch profile；未配置 aweswitch 时会跳过 profile 选择。
 
 | 按键 | 操作 |
 |------|------|

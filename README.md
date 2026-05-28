@@ -102,7 +102,7 @@ aweshelf help [COMMAND]
 | `?` | Show keyboard shortcuts |
 | `q` | Quit |
 
-In edit mode: type to edit the active cell, `Tab`/`Right` to next field, `Shift+Tab`/`Left` to previous, `Up`/`Down` to move rows, `Enter` to save, `Esc` to exit.
+In edit mode: type to edit the active cell, `Delete` to clear it, `Tab`/`Right` to next field, `Shift+Tab`/`Left` to previous, `Up`/`Down` to move rows, `Enter` to save, `Esc` to exit.
 
 ## Development
 

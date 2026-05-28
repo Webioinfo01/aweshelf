@@ -33,7 +33,7 @@ NORMAL_SHORTCUT_TEXT = (
     "c Category   s Sort   / Search   esc Cancel"
 )
 EDIT_SHORTCUT_TEXT = (
-    "enter Save cell   up/down Row   left/right Field   tab Next field   esc Done"
+    "enter Save cell   delete Clear cell   up/down Row   left/right Field   tab Next field   esc Done"
 )
 CONFIRM_SHORTCUT_TEXT = "enter/y Confirm   esc/n Cancel"
 

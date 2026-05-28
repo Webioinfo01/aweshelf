@@ -120,6 +120,7 @@ class BrowseTests(unittest.TestCase):
     def test_edit_shortcuts_describe_inline_cell_editing(self):
         from aweshelf.tui.app import EDIT_SHORTCUT_TEXT
         self.assertIn("enter Save cell", EDIT_SHORTCUT_TEXT)
+        self.assertIn("delete Clear cell", EDIT_SHORTCUT_TEXT)
         self.assertIn("up/down Row", EDIT_SHORTCUT_TEXT)
         self.assertIn("left/right Field", EDIT_SHORTCUT_TEXT)
         self.assertIn("tab Next field", EDIT_SHORTCUT_TEXT)
@@ -234,6 +235,28 @@ class BrowseInteractionTests(unittest.IsolatedAsyncioTestCase):
 
         data = json.loads(self.path.read_text())
         self.assertEqual(data["bookmarks"][0]["title"], "Changed")
+
+    async def test_edit_delete_clears_current_cell_before_save(self):
+        app = BookmarkBrowser()
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            await pilot.press("down")
+            await pilot.pause()
+            await pilot.press("e")
+            await pilot.pause()
+
+            self.assertEqual(app._edit_value, "One")
+
+            await pilot.press("delete")
+            await pilot.pause()
+
+            self.assertEqual(app._edit_value, "")
+
+            await pilot.press("enter")
+            await pilot.pause()
+
+        data = json.loads(self.path.read_text())
+        self.assertEqual(data["bookmarks"][0]["title"], "")
 
     async def test_edit_tab_moves_between_editable_fields(self):
         app = BookmarkBrowser()

@@ -102,7 +102,7 @@ aweshelf help [COMMAND]
 | `?` | 显示快捷键帮助 |
 | `q` | 退出 |
 
-编辑模式：输入文字编辑当前单元格，`Tab`/`Right` 切换下一个字段，`Shift+Tab`/`Left` 切换上一个，`Up`/`Down` 切换行，`Enter` 保存，`Esc` 退出。
+编辑模式：输入文字编辑当前单元格，`Delete` 清空当前单元格，`Tab`/`Right` 切换下一个字段，`Shift+Tab`/`Left` 切换上一个，`Up`/`Down` 切换行，`Enter` 保存，`Esc` 退出。
 
 ## 开发
 

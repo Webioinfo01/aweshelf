@@ -33,11 +33,6 @@ export interface AweshelfSession {
   created_at?: string | null;
 }
 
-export interface AweswitchProfile {
-  provider: string;
-  name: string;
-}
-
 export interface ResumeOptions {
   profile?: string;
   raw?: boolean;
@@ -110,15 +105,6 @@ export function buildBookmarkSessionArgs(sessionId: string, edits: BookmarkEdits
 
 export function buildSessionsArgs(limit = 20): string[] {
   return ["sessions", "--json", "--limit", String(limit)];
-}
-
-export function buildProfilesArgs(provider?: string): string[] {
-  const args = ["profiles", "--json"];
-  const trimmed = provider?.trim();
-  if (trimmed) {
-    args.push("--provider", trimmed);
-  }
-  return args;
 }
 
 export function buildResumeDryRunArgs(bookmarkId: string, options: ResumeOptions = {}): string[] {
@@ -230,15 +216,6 @@ export class AweshelfService {
       throw new Error("aweshelf returned JSON that is not a session array");
     }
     return parsed as AweshelfSession[];
-  }
-
-  async listProfiles(provider?: string): Promise<AweswitchProfile[]> {
-    const stdout = await this.runJsonCommand(buildProfilesArgs(provider));
-    const parsed = JSON.parse(stdout);
-    if (!Array.isArray(parsed)) {
-      throw new Error("aweshelf returned JSON that is not a profile array");
-    }
-    return parsed as AweswitchProfile[];
   }
 
   async getResumeTarget(bookmarkId: string, options: ResumeOptions = {}): Promise<ResumeDryRunTarget> {

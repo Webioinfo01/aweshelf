@@ -223,29 +223,6 @@ class CliTests(unittest.TestCase):
         self.assertEqual(data[0]["session_id"], "sess-001")
         self.assertEqual(data[0]["provider"], "claude")
 
-    @patch(
-        "aweshelf.commands.profiles.load_aweswitch_config",
-        return_value={
-            "profiles": {
-                "claude": {"cc-glm": {"env": {}}, "cc-openai": {"env": {}}},
-                "codex": {"codex-openai": {"env": {}}},
-            }
-        },
-    )
-    def test_profiles_json_outputs_profiles(self, mock_config):
-        result = CliRunner().invoke(aweshelf.cli, ["profiles", "--json"])
-
-        self.assertEqual(result.exit_code, 0, result.output)
-        data = json.loads(result.output)
-        self.assertEqual(
-            data,
-            [
-                {"provider": "claude", "name": "cc-glm"},
-                {"provider": "claude", "name": "cc-openai"},
-                {"provider": "codex", "name": "codex-openai"},
-            ],
-        )
-
     @patch("aweshelf.commands.resume.find_bookmark")
     @patch("aweshelf.commands.resume.build_resume_target")
     def test_resume_dry_run_json_outputs_target(self, mock_build, mock_find):

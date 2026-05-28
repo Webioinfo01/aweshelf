@@ -1,12 +1,12 @@
 import * as vscode from "vscode";
+import { readFileSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 import {
   AweshelfService,
   AweshelfSession,
-  AweswitchProfile,
   BookmarkEdits,
-  buildBookmarkCurrentArgs,
   buildResumeArgs,
   buildShellCommand,
   createAweshelfEnv,
@@ -244,56 +244,6 @@ export function activate(context: vscode.ExtensionContext): void {
       const service = createService(context);
       openAweshelfTerminal(service, buildResumeArgs(bookmark.id));
     }),
-    vscode.commands.registerCommand("aweshelf.bookmarkCurrent", async () => {
-      const service = createService(context);
-      try {
-        const sessions = await service.listSessions(1);
-        const session = sessions[0];
-        if (!session) {
-          void vscode.window.showWarningMessage("No aweshelf session found in this project.");
-          return;
-        }
-        const confirm = await vscode.window.showInformationMessage(
-          `Bookmark current session: ${session.title || session.session_id}?`,
-          { modal: true },
-          "Bookmark"
-        );
-        if (confirm !== "Bookmark") {
-          return;
-        }
-        const edits = await promptNewBookmarkMetadata(service, session);
-        if (!edits) {
-          return;
-        }
-        await service.bookmarkSession(session.session_id, edits);
-        provider.refresh();
-        void vscode.window.showInformationMessage(`Bookmarked ${session.title || session.session_id}`);
-      } catch (error) {
-        void vscode.window.showErrorMessage(formatCommandError(error));
-      }
-    }),
-    vscode.commands.registerCommand("aweshelf.bookmarkCurrentInTerminal", () => {
-      const service = createService(context);
-      openAweshelfTerminal(service, buildBookmarkCurrentArgs());
-    }),
-    vscode.commands.registerCommand("aweshelf.showStatus", async () => {
-      const service = createService(context);
-      const options = provider.getOptions();
-      const configPath = resolveBookmarkConfigPath(service.configPath);
-      const content = [
-        "# Aweshelf Status",
-        "",
-        `- **Command:** \`${service.commandPath}\``,
-        `- **AWESHELF_CONFIG:** \`${service.configPath || "(default)"}\``,
-        `- **Bookmark store:** \`${configPath}\``,
-        `- **Search:** \`${provider.getQuery() || "(none)"}\``,
-        `- **Sort:** \`${options.sortBy || "title"}\``,
-        `- **Provider filter:** \`${options.provider || "(all)"}\``,
-        `- **Category filter:** \`${options.category || "(all)"}\``
-      ].join("\n");
-      const document = await vscode.workspace.openTextDocument({ language: "markdown", content });
-      await vscode.window.showTextDocument(document, { preview: true });
-    }),
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration("aweshelf")) {
         provider.setService(createService(context));
@@ -484,23 +434,33 @@ async function pickProfile(
   if (provider !== "claude") {
     return "";
   }
+  const profiles = loadAweswitchProfiles(provider);
+  const picks: Array<{ label: string; description?: string; value: string | undefined }> = [
+    { label: allowClear ? "Clear profile" : "No profile", value: "" },
+    ...profiles.map((name) => ({
+      label: name,
+      description: name === currentProfile ? "current" : undefined,
+      value: name
+    }))
+  ];
+  const selected = await vscode.window.showQuickPick(picks, {
+    placeHolder: "Select aweswitch profile",
+    ignoreFocusOut: true
+  });
+  return selected?.value;
+}
+
+function loadAweswitchProfiles(provider: string): string[] {
+  const configPath = process.env["AWESWITCH_CONFIG"]
+    || path.join(os.homedir(), ".config", "aweswitch", "config.json");
   try {
-    const profiles = await service.listProfiles(provider);
-    const picks: Array<{ label: string; description?: string; value: string | undefined }> = [
-      { label: allowClear ? "Clear profile" : "No profile", value: "" },
-      ...profiles.map((profile: AweswitchProfile) => ({
-        label: profile.name,
-        description: profile.name === currentProfile ? "current" : undefined,
-        value: profile.name
-      }))
-    ];
-    const selected = await vscode.window.showQuickPick(picks, {
-      placeHolder: "Select aweswitch profile",
-      ignoreFocusOut: true
-    });
-    return selected?.value;
-  } catch (error) {
-    void vscode.window.showErrorMessage(formatCommandError(error));
-    return undefined;
+    const data = JSON.parse(readFileSync(configPath, "utf-8"));
+    const profiles = data?.profiles?.[provider];
+    if (profiles && typeof profiles === "object") {
+      return Object.keys(profiles).sort();
+    }
+  } catch {
+    // config missing or invalid — no profiles available
   }
+  return [];
 }

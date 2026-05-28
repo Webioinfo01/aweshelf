@@ -51,9 +51,6 @@
     "onCommand:aweshelf.resumeBookmarkWithProfile",
     "onCommand:aweshelf.resumeBookmarkRaw",
     "onCommand:aweshelf.resumeBookmark",
-    "onCommand:aweshelf.bookmarkCurrent",
-    "onCommand:aweshelf.bookmarkCurrentInTerminal",
-    "onCommand:aweshelf.showStatus"
   ],
   "main": "./out/src/extension.js",
   "scripts": {
@@ -165,21 +162,6 @@
         "title": "Aweshelf: Resume Bookmark",
         "icon": "$(debug-start)"
       },
-      {
-        "command": "aweshelf.bookmarkCurrent",
-        "title": "Aweshelf: Bookmark Current Session",
-        "icon": "$(bookmark)"
-      },
-      {
-        "command": "aweshelf.bookmarkCurrentInTerminal",
-        "title": "Aweshelf: Bookmark Current Session in Terminal",
-        "icon": "$(terminal)"
-      },
-      {
-        "command": "aweshelf.showStatus",
-        "title": "Aweshelf: Show Status",
-        "icon": "$(pulse)"
-      }
     ],
     "viewsContainers": {
       "activitybar": [
@@ -201,7 +183,7 @@
     "viewsWelcome": [
       {
         "view": "aweshelfBookmarks",
-        "contents": "No aweshelf bookmarks found.\n[Refresh](command:aweshelf.refresh)\n[Bookmark Current Session](command:aweshelf.bookmarkCurrent)\n[Bookmark Another Session](command:aweshelf.bookmarkSession)"
+        "contents": "No aweshelf bookmarks found.\n[Refresh](command:aweshelf.refresh)\n[Bookmark Session](command:aweshelf.bookmarkSession)"
       }
     ],
     "menus": {
@@ -245,11 +227,6 @@
           "command": "aweshelf.bookmarkSession",
           "when": "view == aweshelfBookmarks",
           "group": "navigation@8"
-        },
-        {
-          "command": "aweshelf.showStatus",
-          "when": "view == aweshelfBookmarks",
-          "group": "navigation@9"
         }
       ],
       "view/item/context": [

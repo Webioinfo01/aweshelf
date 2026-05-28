@@ -23,6 +23,13 @@ src/aweshelf/
   types.py             # Bookmark dataclass
   cli.py               # Click entry point
   commands/            # One file per command, thin orchestrators
+    bookmark.py        # Bookmark current or specified session
+    browse.py          # Interactive TUI launcher
+    list.py            # List bookmarks with optional filters
+    recent.py          # Show recent sessions
+    resume.py          # Resume a bookmarked session
+    search.py          # Search bookmarks by keyword
+    show.py            # Show bookmark details
   lib/                 # Pure business logic, no CLI coupling
     aweswitch.py       # aweswitch config parsing and profile detection
     discovery.py       # Session file discovery for Claude Code and Codex

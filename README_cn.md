@@ -148,6 +148,8 @@ aweshelf help [COMMAND]
 
 ## 开发
 
+详见 [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) 了解开发环境搭建、架构、测试和代码风格。
+
 ```bash
 python -m pytest tests/
 ```

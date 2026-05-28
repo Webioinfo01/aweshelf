@@ -153,6 +153,8 @@ In edit mode: type to edit the active cell, `Delete` to clear it, `Tab`/`Right` 
 
 ## Development
 
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for setup, architecture, testing, and code style.
+
 ```bash
 python -m pytest tests/
 ```

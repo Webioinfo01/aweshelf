@@ -1,6 +1,6 @@
 <div align="center">
   <img src="logo/aweshelf.png" alt="aweshelf" width="860">
-  <h1>aweshelf: 会话书签管理器 <a href="https://github.com/Webioinfo01/aweskill"><img src="logo/aweskill-companion.svg" alt="aweskill companion"></a></h1>
+  <h1>aweshelf: 会话书签管理器 <a href="https://github.com/Webioinfo01/aweskill"><img src="https://raw.githubusercontent.com/Webioinfo01/aweskill/main/logo/aweskill-badge.svg" alt="aweskill companion"></a></h1>
   <p><strong>收藏、分类、恢复 AI 编程会话，支持 aweswitch 配置恢复。</strong></p>
   <p>轻量 CLI-first 工具，支持 Claude Code 和 Codex。</p>
   <p>

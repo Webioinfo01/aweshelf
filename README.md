@@ -47,9 +47,22 @@ The agent will first install the `aweshelf` CLI, then choose one of two skill ma
 pip install aweshelf
 ```
 
-## Supported by aweskill
+### Optional: aweswitch
 
-aweshelf is powered by [aweskill](https://github.com/Webioinfo01/aweskill) — a CLI-first skill package manager that AI agents can operate themselves. aweskill handles skill installation, updates, projection, and backup across 47+ coding agents including Claude Code, Codex, Cursor, Gemini CLI, and more.
+aweshelf saves the active aweswitch profile when you bookmark a session. Install [aweswitch](https://github.com/mugpeng/aweswitch) to enable multi-profile management — without it, aweshelf works but profile restore on resume is skipped.
+
+With aweswitch, you can resume a session using the original provider (e.g. Claude Code official API) or switch to another configured profile like `cc-xiaomi`, `cc-glm`, etc. — each with its own API endpoint, token, and model.
+
+```bash
+pip install aweswitch
+```
+
+## Supported by
+
+aweshelf is powered by two companion tools:
+
+- **[aweskill](https://github.com/Webioinfo01/aweskill)** — CLI-first skill package manager for AI agents. Handles skill installation, updates, and projection across 47+ coding agents.
+- **[aweswitch](https://github.com/mugpeng/aweswitch)** — Agent profile switcher. Lets you launch sessions with different API endpoints, tokens, and models. aweshelf stores aweswitch profiles in bookmarks so sessions restore with the right config.
 
 ## Usage
 
@@ -77,12 +90,17 @@ The primary way to use aweshelf interactively is the TUI:
 aweshelf browse
 ```
 
-<!-- TODO: add screenshots
-  Suggested screenshots:
-  1. aweshelf browse main view — sidebar table with bookmark list + right detail pane
-  2. Category-grouped view (press `c`) — bookmarks grouped by category
-  3. Inline edit mode (press `e`) — editing title/category/profile in-place
--->
+The browse view keeps bookmarks grouped by category, with the selected bookmark's details on the right.
+
+![aweshelf browse view with category groups](resources/image/example1.png)
+
+Press `e` to edit the current cell in place. Title, category, and profile changes can be saved without leaving the TUI.
+
+![aweshelf inline edit mode](resources/image/example2.png)
+
+Press `/` to filter bookmarks by title, category, session, project, prompt, or profile.
+
+![aweshelf search filter](resources/image/example3.png)
 
 `aweshelf browse` opens an interactive terminal UI with a sidebar table and detail pane. Browse, search, edit, and resume bookmarks without memorizing commands.
 

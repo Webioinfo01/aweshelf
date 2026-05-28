@@ -124,3 +124,41 @@ def list_categories(path: Path | None = None) -> list[str]:
     bookmarks = load_bookmarks(path)
     cats = sorted(set(b.category for b in bookmarks if b.category))
     return cats
+
+
+def filter_bookmarks(bookmarks: list[Bookmark], query: str) -> list[Bookmark]:
+    """Search bookmarks across title, category, session ID, project, first prompt, and profile."""
+    q = query.lower()
+    return [
+        b for b in bookmarks
+        if q in b.title.lower()
+        or q in b.category.lower()
+        or q in b.session_id.lower()
+        or q in b.project_path.lower()
+        or q in b.first_prompt.lower()
+        or (b.aweswitch_profile and q in b.aweswitch_profile.lower())
+    ]
+
+
+def format_bookmark_detail(b: Bookmark, max_first_prompt: int = 0) -> str:
+    """Format bookmark details as plain text.
+
+    Args:
+        max_first_prompt: Truncate first_prompt to this many chars from each end.
+            0 means show full value.
+    """
+    first_prompt = b.first_prompt or "-"
+    if max_first_prompt > 0 and len(first_prompt) > max_first_prompt * 2:
+        first_prompt = f"{first_prompt[:max_first_prompt]}...{first_prompt[-max_first_prompt:]}"
+    lines = [
+        f"ID:               {b.id}",
+        f"Title:            {b.title}",
+        f"First prompt:     {first_prompt}",
+        f"Provider:         {b.provider}",
+        f"Session ID:       {b.session_id}",
+        f"Category:         {b.category or '-'}",
+        f"Project:          {b.project_path or '-'}",
+        f"aweswitch Profile: {b.aweswitch_profile or '-'}",
+        f"Bookmarked at:    {b.bookmarked_at}",
+    ]
+    return "\n".join(lines)

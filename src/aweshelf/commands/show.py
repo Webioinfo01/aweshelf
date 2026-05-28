@@ -4,7 +4,7 @@ import json
 
 import click
 
-from aweshelf.lib.store import find_bookmark, find_by_session_id, update_bookmark, remove_bookmark
+from aweshelf.lib.store import find_bookmark, find_by_session_id, format_bookmark_detail, update_bookmark, remove_bookmark
 
 
 def _resolve_bookmark(identifier: str):
@@ -26,14 +26,7 @@ def show_command(bookmark_id, as_json):
     if as_json:
         click.echo(json.dumps(b.to_dict(), indent=2, ensure_ascii=False))
     else:
-        click.echo(f"ID:               {b.id}")
-        click.echo(f"Provider:         {b.provider}")
-        click.echo(f"Session ID:       {b.session_id}")
-        click.echo(f"Title:            {b.title}")
-        click.echo(f"Category:         {b.category or '-'}")
-        click.echo(f"Project:          {b.project_path or '-'}")
-        click.echo(f"aweswitch Profile: {b.aweswitch_profile or '-'}")
-        click.echo(f"Bookmarked at:    {b.bookmarked_at}")
+        click.echo(format_bookmark_detail(b))
 
 
 @click.command("edit")

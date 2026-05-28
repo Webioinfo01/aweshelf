@@ -8,7 +8,7 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.widgets import DataTable, Header, Input, Static
 
-from aweshelf.lib.store import load_bookmarks, remove_bookmark, update_bookmark
+from aweshelf.lib.store import filter_bookmarks, format_bookmark_detail, load_bookmarks, remove_bookmark, update_bookmark
 from aweshelf.types import Bookmark
 
 SIDEBAR_FRAC = 60
@@ -186,22 +186,9 @@ class BookmarkBrowser(App):
     def _is_normal(self) -> bool:
         return self._app_mode == MODE_NORMAL
 
-    def _matches_filter(self, b: Bookmark) -> bool:
-        if not self._filter:
-            return True
-        f = self._filter
-        return (
-            f in b.title.lower()
-            or f in b.category.lower()
-            or f in b.session_id.lower()
-            or f in b.project_path.lower()
-            or f in b.first_prompt.lower()
-            or (b.aweswitch_profile and f in b.aweswitch_profile.lower())
-        )
-
     def _load_data(self) -> None:
         self._bookmarks = load_bookmarks()
-        visible = [b for b in self._bookmarks if self._matches_filter(b)]
+        visible = filter_bookmarks(self._bookmarks, self._filter) if self._filter else self._bookmarks
         visible = self._sort_bookmarks(visible)
         visible = self._bookmarks_in_table_order(visible)
         self._visible_bookmark_ids = [b.id for b in visible]

@@ -2,7 +2,7 @@
 
 import click
 
-from aweshelf.lib.store import load_bookmarks
+from aweshelf.lib.store import filter_bookmarks, load_bookmarks
 
 
 def format_table(bookmarks: list) -> str:
@@ -62,16 +62,7 @@ def list_command(category, provider, sort_by, limit):
 def search_command(query):
     """Search bookmarks by title, category, session ID, project, or profile."""
     bookmarks = load_bookmarks()
-    query_lower = query.lower()
-    results = [
-        b for b in bookmarks
-        if query_lower in b.title.lower()
-        or query_lower in b.category.lower()
-        or query_lower in b.session_id.lower()
-        or query_lower in b.project_path.lower()
-        or query_lower in b.first_prompt.lower()
-        or (b.aweswitch_profile and query_lower in b.aweswitch_profile.lower())
-    ]
+    results = filter_bookmarks(bookmarks, query)
     click.echo(format_table(results))
 
 

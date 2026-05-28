@@ -71,7 +71,7 @@ aweshelf browse
 ## 命令
 
 ```bash
-aweshelf bookmark [SESSION_ID] [-t TITLE] [-c CATEGORY] [--profile PROFILE] [--verbose]
+aweshelf bookmark [SESSION_ID] [-t TITLE] [-c CATEGORY] [--profile PROFILE] [--current] [--verbose]
 aweshelf list [-c CATEGORY] [-p PROVIDER]
 aweshelf search QUERY              # 搜索标题、分类、会话ID、项目路径、首条提示词、配置
 aweshelf recent [-n COUNT]
@@ -86,7 +86,7 @@ aweshelf help [COMMAND]
 ## 浏览模式 (TUI)
 
 `aweshelf browse` 打开交互式 TUI，左侧为书签表格，右侧为详情面板。
-`aweshelf bookmark` 会标记已经收藏的会话，并可在确认后更新已有 bookmark。交互收藏时会提示填写标题、分类和 Claude aweswitch profile；未配置 aweswitch 时会跳过 profile 选择。
+`aweshelf bookmark` 会标记已经收藏的会话，并可在确认后更新已有 bookmark。使用 `aweshelf bookmark --current` 可以确认并保存当前项目最近的会话，不打开会话选择列表。交互收藏时会提示填写标题、分类和 Claude aweswitch profile；未配置 aweswitch 时会跳过 profile 选择。
 
 | 按键 | 操作 |
 |------|------|

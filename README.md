@@ -71,7 +71,7 @@ Bookmarks are stored at `~/.config/aweshelf/bookmarks.json`. Override with `AWES
 ## Commands
 
 ```bash
-aweshelf bookmark [SESSION_ID] [-t TITLE] [-c CATEGORY] [--profile PROFILE] [--verbose]
+aweshelf bookmark [SESSION_ID] [-t TITLE] [-c CATEGORY] [--profile PROFILE] [--current] [--verbose]
 aweshelf list [-c CATEGORY] [-p PROVIDER]
 aweshelf search QUERY              # search title, category, session, project, prompt, profile
 aweshelf recent [-n COUNT]
@@ -86,7 +86,7 @@ aweshelf help [COMMAND]
 ## Browse (TUI)
 
 `aweshelf browse` opens an interactive TUI with a sidebar table and detail pane.
-`aweshelf bookmark` marks already-bookmarked sessions and can update them after confirmation. Interactive bookmarking prompts for title, category, and Claude aweswitch profile; profile selection is skipped when aweswitch is not configured.
+`aweshelf bookmark` marks already-bookmarked sessions and can update them after confirmation. Use `aweshelf bookmark --current` to confirm and save the most recent session in the current project without opening the session picker. Interactive bookmarking prompts for title, category, and Claude aweswitch profile; profile selection is skipped when aweswitch is not configured.
 
 | Key | Action |
 |-----|--------|

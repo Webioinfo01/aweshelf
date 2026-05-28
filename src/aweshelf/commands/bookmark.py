@@ -105,6 +105,18 @@ def pick_session(
         click.echo(f"Please enter 1-{len(shown)}")
 
 
+def _confirm_current_session(session: dict) -> None:
+    click.echo("Current session candidate:")
+    click.echo(f"  [{session.get('provider', '?')}] {session.get('title', 'Untitled')}")
+    click.echo(f"  {session.get('session_id', '?')}")
+    project_path = session.get("project_path", "")
+    if project_path:
+        click.echo(f"  {project_path}")
+    if not click.confirm("Bookmark this session?", default=True):
+        click.echo("Bookmark unchanged.")
+        raise SystemExit(0)
+
+
 def run_bookmark(
     session_id: str | None = None,
     title: str | None = None,
@@ -112,18 +124,41 @@ def run_bookmark(
     profile: str | None = None,
     interactive: bool = True,
     verbose: bool = False,
+    current: bool = False,
 ) -> Bookmark:
+    if current and session_id is not None:
+        raise click.ClickException("--current cannot be used with SESSION_ID")
+
     path = bookmark_path()
-    picked_interactively = session_id is None and interactive
+    picked_interactively = session_id is None and interactive and not current
+    prompts_from_discovered_session = picked_interactively or (current and interactive)
     existing_bookmark = None
+    existing_by_session = {b.session_id: b for b in load_bookmarks(path)}
 
     if picked_interactively:
         sessions = find_project_sessions()
         if not sessions:
             raise SystemExit("aweshelf: no session found in current project")
         limit = len(sessions) if verbose else DEFAULT_LIST_LIMIT
-        existing_by_session = {b.session_id: b for b in load_bookmarks(path)}
         session = pick_session(sessions, limit, existing_by_session)
+        session_id = session["session_id"]
+        existing_bookmark = existing_by_session.get(session_id)
+        if existing_bookmark and not click.confirm(
+            f"Session already bookmarked as {existing_bookmark.id}. Update it?",
+            default=False,
+        ):
+            click.echo("Bookmark unchanged.")
+            raise SystemExit(0)
+        source_path = session.get("source_path", "")
+        provider = session.get("provider", "claude")
+        auto_title = session.get("title", "")
+        first_prompt = session.get("first_prompt", "")
+        project_path = session.get("project_path", "")
+    elif current:
+        session = find_recent_session()
+        if session is None:
+            raise SystemExit("aweshelf: no session found in current project")
+        _confirm_current_session(session)
         session_id = session["session_id"]
         existing_bookmark = existing_by_session.get(session_id)
         if existing_bookmark and not click.confirm(
@@ -160,7 +195,7 @@ def run_bookmark(
             if existing_bookmark
             else auto_title or first_prompt[:80] or "Untitled session"
         )
-        if picked_interactively:
+        if prompts_from_discovered_session:
             title = click.prompt("Title (blank keeps current/default title)", default=title, show_default=False)
 
     if interactive and category is None:
@@ -185,7 +220,7 @@ def run_bookmark(
         except Exception:
             pass
 
-    if picked_interactively:
+    if prompts_from_discovered_session:
         if existing_bookmark and profile is None:
             profile = existing_bookmark.aweswitch_profile
         profile = _prompt_profile(profile, provider, config)
@@ -218,11 +253,20 @@ def run_bookmark(
 @click.option("-t", "--title", default=None, help="Bookmark title.")
 @click.option("-c", "--category", default=None, help="Category for the bookmark.")
 @click.option("--profile", default=None, help="aweswitch profile to use.")
+@click.option("--current", is_flag=True, help="Bookmark the most recent session in this project.")
 @click.option("--verbose", is_flag=True, help="Show all sessions (no limit).")
-def bookmark_command(session_id, title, category, profile, verbose):
+def bookmark_command(session_id, title, category, profile, current, verbose):
     """Bookmark a session for quick access."""
     try:
-        b = run_bookmark(session_id, title, category, profile, interactive=True, verbose=verbose)
+        b = run_bookmark(
+            session_id,
+            title,
+            category,
+            profile,
+            interactive=True,
+            verbose=verbose,
+            current=current,
+        )
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
     status = getattr(b, "_aweshelf_status", "bookmarked")

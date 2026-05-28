@@ -175,6 +175,64 @@ class BookmarkCommandTests(unittest.TestCase):
         self.assertEqual(bookmarks[0].session_id, "sess-999")
         self.assertEqual(bookmarks[0].title, "My session")
 
+    @patch("aweshelf.commands.bookmark.find_project_sessions")
+    @patch("aweshelf.commands.bookmark.find_recent_session", return_value=MOCK_SESSIONS[1])
+    @patch("aweshelf.commands.bookmark.detect_profile", return_value=None)
+    @patch("aweshelf.commands.bookmark.load_aweswitch_config", return_value=None)
+    def test_bookmark_current_uses_recent_session_without_listing(
+        self,
+        mock_config,
+        mock_detect,
+        mock_recent,
+        mock_project_sessions,
+    ):
+        runner, path = self._run_with_config(["bookmark"])
+        result = runner.invoke(aweshelf.cli, ["bookmark", "--current"], input="y\nCurrent title\ncurrent\n")
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertIn("Current session candidate:", result.output)
+        self.assertIn("sess-002", result.output)
+        self.assertNotIn("Pick a session", result.output)
+        mock_project_sessions.assert_not_called()
+
+        bookmarks = load_bookmarks(path)
+        self.assertEqual(len(bookmarks), 1)
+        self.assertEqual(bookmarks[0].session_id, "sess-002")
+        self.assertEqual(bookmarks[0].title, "Current title")
+        self.assertEqual(bookmarks[0].category, "current")
+
+    @patch("aweshelf.commands.bookmark.find_recent_session", return_value=MOCK_SESSIONS[1])
+    @patch("aweshelf.commands.bookmark.detect_profile", return_value=None)
+    @patch("aweshelf.commands.bookmark.load_aweswitch_config", return_value=None)
+    def test_bookmark_current_can_cancel_candidate(self, mock_config, mock_detect, mock_recent):
+        runner, path = self._run_with_config(["bookmark"])
+        result = runner.invoke(aweshelf.cli, ["bookmark", "--current"], input="n\n")
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertIn("Bookmark unchanged.", result.output)
+        self.assertEqual(load_bookmarks(path), [])
+
+    @patch("aweshelf.commands.bookmark.find_recent_session", return_value=MOCK_SESSIONS[1])
+    @patch("aweshelf.commands.bookmark.detect_profile", return_value=None)
+    @patch("aweshelf.commands.bookmark.load_aweswitch_config", return_value=None)
+    def test_bookmark_current_updates_existing_session(self, mock_config, mock_detect, mock_recent):
+        runner, path = self._run_with_config(["bookmark"])
+        runner.invoke(aweshelf.cli, ["bookmark", "sess-002", "-t", "Old title", "-c", "old"])
+
+        result = runner.invoke(aweshelf.cli, ["bookmark", "--current"], input="y\ny\nNew title\nnew\n")
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertIn("Session already bookmarked as aweshelf_0001. Update it?", result.output)
+        self.assertIn("Updated aweshelf_0001", result.output)
+
+        bookmarks = load_bookmarks(path)
+        self.assertEqual(len(bookmarks), 1)
+        self.assertEqual(bookmarks[0].id, "aweshelf_0001")
+        self.assertEqual(bookmarks[0].title, "New title")
+        self.assertEqual(bookmarks[0].category, "new")
+
+    def test_bookmark_current_rejects_session_id(self):
+        result = CliRunner().invoke(aweshelf.cli, ["bookmark", "sess-001", "--current"])
+        self.assertNotEqual(result.exit_code, 0)
+        self.assertIn("--current cannot be used with SESSION_ID", result.output)
+
     @patch("aweshelf.commands.bookmark.find_project_sessions", return_value=MOCK_SESSIONS)
     @patch("aweshelf.commands.bookmark.detect_profile", return_value="cc-glm")
     @patch(

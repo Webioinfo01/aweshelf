@@ -69,6 +69,7 @@ def search_command(query):
         or query_lower in b.category.lower()
         or query_lower in b.session_id.lower()
         or query_lower in b.project_path.lower()
+        or query_lower in b.first_prompt.lower()
         or (b.aweswitch_profile and query_lower in b.aweswitch_profile.lower())
     ]
     click.echo(format_table(results))

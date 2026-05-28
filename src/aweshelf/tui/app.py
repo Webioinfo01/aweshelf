@@ -29,11 +29,10 @@ ATTR_COLUMNS = {
 }
 NORMAL_SHORTCUT_TEXT = (
     "enter Resume selected session   q Quit   e Edit   r Remove   "
-    "c Category   s Sort   esc Cancel"
+    "c Category   s Sort   / Search   esc Cancel"
 )
 EDIT_SHORTCUT_TEXT = (
-    "enter Save cell   tab Next field   shift+tab Previous field   "
-    "left/right Move field   esc Done"
+    "enter Save cell   up/down Row   left/right Field   tab Next field   esc Done"
 )
 CONFIRM_SHORTCUT_TEXT = "enter/y Confirm   esc/n Cancel"
 
@@ -151,6 +150,7 @@ class BookmarkBrowser(App):
     def __init__(self):
         super().__init__()
         self._bookmarks: list[Bookmark] = []
+        self._visible_bookmark_ids: list[str] = []
         self._selected: Bookmark | None = None
         self._filter: str = ""
         self._mode: str = MODE_ORDER[0]
@@ -202,9 +202,15 @@ class BookmarkBrowser(App):
         self._bookmarks = load_bookmarks()
         visible = [b for b in self._bookmarks if self._matches_filter(b)]
         visible = self._sort_bookmarks(visible)
+        visible = self._bookmarks_in_table_order(visible)
+        self._visible_bookmark_ids = [b.id for b in visible]
         visible_ids = {b.id for b in visible}
         if self._selected and self._selected.id not in visible_ids:
             self._selected = None
+        if self._filter and not self._selected and visible:
+            self._selected = visible[0]
+            if self._is_normal():
+                self._update_detail(self._selected)
 
         table = self.query_one("#table", DataTable)
         self._reset_table_columns(table)
@@ -232,6 +238,18 @@ class BookmarkBrowser(App):
         if self._sort_order == "cat_id":
             return sorted(bookmarks, key=lambda b: (b.category or "", b.id))
         return sorted(bookmarks, key=lambda b: b.id)
+
+    def _bookmarks_in_table_order(self, bookmarks: list[Bookmark]) -> list[Bookmark]:
+        if self._mode != "category":
+            return bookmarks
+        by_category: dict[str, list[Bookmark]] = {}
+        for b in bookmarks:
+            cat = b.category or "uncategorized"
+            by_category.setdefault(cat, []).append(b)
+        ordered = []
+        for cat in sorted(by_category):
+            ordered.extend(by_category[cat])
+        return ordered
 
     def _update_shortcuts(self) -> None:
         if not self.is_mounted:
@@ -407,6 +425,16 @@ class BookmarkBrowser(App):
 
     def on_key(self, event) -> None:
         key = event.key
+        search = self.query_one("#search", Input)
+
+        if search.has_focus:
+            if key == "enter":
+                self.query_one("#table", DataTable).focus()
+                event.stop()
+            elif key == "escape":
+                self.action_clear_search()
+                event.stop()
+            return
 
         if self._app_mode == MODE_EDIT:
             if key == "escape":
@@ -420,6 +448,12 @@ class BookmarkBrowser(App):
                 event.stop()
             elif key in ("shift+tab", "left"):
                 self._move_edit_field(-1)
+                event.stop()
+            elif key == "down":
+                self._move_edit_row(1)
+                event.stop()
+            elif key == "up":
+                self._move_edit_row(-1)
                 event.stop()
             elif key == "backspace":
                 self._edit_value = self._edit_value[:-1]
@@ -520,6 +554,8 @@ class BookmarkBrowser(App):
     def _refresh_edit_row(self) -> None:
         if self._selected:
             self._load_data()
+            if self._app_mode == MODE_EDIT:
+                self._sync_edit_cursor()
 
     def _move_edit_field(self, delta: int) -> None:
         if not self._selected or not self._edit_attr:
@@ -527,6 +563,29 @@ class BookmarkBrowser(App):
         attrs = self._editable_attrs()
         self._edit_attr = attrs[(attrs.index(self._edit_attr) + delta) % len(attrs)]
         self._edit_value = self._value_for_attr(self._selected, self._edit_attr)
+        self._refresh_edit_row()
+
+    def _move_edit_row(self, delta: int) -> None:
+        if not self._selected or not self._edit_attr or not self._visible_bookmark_ids:
+            return
+        try:
+            current_index = self._visible_bookmark_ids.index(self._selected.id)
+        except ValueError:
+            return
+        next_index = current_index + delta
+        if next_index < 0 or next_index >= len(self._visible_bookmark_ids):
+            return
+        next_id = self._visible_bookmark_ids[next_index]
+        for b in self._bookmarks:
+            if b.id == next_id:
+                self._selected = b
+                break
+        self._edit_value = self._value_for_attr(self._selected, self._edit_attr)
+        self._refresh_edit_row()
+
+    def _sync_edit_cursor(self) -> None:
+        if not self._selected or not self._edit_attr:
+            return
         table = self.query_one("#table", DataTable)
         with suppress(Exception):
             table.move_cursor(
@@ -536,7 +595,6 @@ class BookmarkBrowser(App):
         self.query_one("#detail-body", Static).update(
             f"{ATTR_COLUMNS[self._edit_attr]}: Enter saves this cell. Esc exits editing."
         )
-        self._refresh_edit_row()
 
     def _edit_save(self) -> None:
         if not self._selected:
@@ -595,6 +653,8 @@ class BookmarkBrowser(App):
         self.query_one("#detail-body", Static).update(self.HELP_TEXT)
 
     def action_focus_search(self) -> None:
+        if not self._is_normal():
+            return
         search = self.query_one("#search", Input)
         search.add_class("visible")
         search.focus()

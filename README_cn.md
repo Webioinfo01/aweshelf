@@ -73,7 +73,7 @@ aweshelf browse
 ```bash
 aweshelf bookmark [SESSION_ID] [-t TITLE] [-c CATEGORY] [--profile PROFILE] [--verbose]
 aweshelf list [-c CATEGORY] [-p PROVIDER]
-aweshelf search QUERY              # 搜索标题、分类、会话ID、项目路径、配置
+aweshelf search QUERY              # 搜索标题、分类、会话ID、项目路径、首条提示词、配置
 aweshelf recent [-n COUNT]
 aweshelf show BOOKMARK_ID [--json]
 aweshelf edit BOOKMARK_ID [-t TITLE] [-c CATEGORY] [--profile PROFILE]
@@ -86,6 +86,7 @@ aweshelf help [COMMAND]
 ## 浏览模式 (TUI)
 
 `aweshelf browse` 打开交互式 TUI，左侧为书签表格，右侧为详情面板。
+`aweshelf bookmark` 交互选择会话时会提示填写标题、分类和 aweswitch profile；profile 必须存在于 aweswitch 配置中。
 
 | 按键 | 操作 |
 |------|------|
@@ -101,7 +102,7 @@ aweshelf help [COMMAND]
 | `?` | 显示快捷键帮助 |
 | `q` | 退出 |
 
-编辑模式：输入文字编辑，`Tab`/`Right` 切换下一个字段，`Shift+Tab`/`Left` 切换上一个，`Enter` 保存，`Esc` 退出。
+编辑模式：输入文字编辑当前单元格，`Tab`/`Right` 切换下一个字段，`Shift+Tab`/`Left` 切换上一个，`Up`/`Down` 切换行，`Enter` 保存，`Esc` 退出。
 
 ## 开发
 

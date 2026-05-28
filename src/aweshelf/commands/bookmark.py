@@ -2,13 +2,31 @@
 
 import click
 
-from aweshelf.types import Bookmark
-from aweshelf.lib.store import add_bookmark, list_categories, bookmark_path
+from aweshelf.lib.aweswitch import detect_profile, load_aweswitch_config, profile_exists
 from aweshelf.lib.discovery import find_project_sessions, find_recent_session
 from aweshelf.lib.session import parse_session_meta
-from aweshelf.lib.aweswitch import detect_profile, load_aweswitch_config
+from aweshelf.lib.store import add_bookmark, bookmark_path, list_categories
+from aweshelf.types import Bookmark
 
 DEFAULT_LIST_LIMIT = 10
+
+
+def _validate_profile(profile: str | None, config: dict | None) -> str | None:
+    if not profile:
+        return None
+    if not config or not profile_exists(profile, config):
+        raise click.ClickException(f"aweswitch profile not found: {profile}")
+    return profile
+
+
+def _prompt_profile(default_profile: str | None, config: dict | None) -> str | None:
+    while True:
+        profile_input = click.prompt("Profile", default=default_profile or "", show_default=False)
+        if not profile_input:
+            return None
+        if config and profile_exists(profile_input, config):
+            return profile_input
+        click.echo(f"aweswitch profile not found: {profile_input}")
 
 
 def pick_session(sessions: list[dict], limit: int = DEFAULT_LIST_LIMIT) -> dict:
@@ -48,8 +66,9 @@ def run_bookmark(
     verbose: bool = False,
 ) -> Bookmark:
     path = bookmark_path()
+    picked_interactively = session_id is None and interactive
 
-    if session_id is None and interactive:
+    if picked_interactively:
         sessions = find_project_sessions()
         if not sessions:
             raise SystemExit("aweshelf: no session found in current project")
@@ -80,10 +99,12 @@ def run_bookmark(
 
     if title is None:
         title = auto_title or first_prompt[:80] or "Untitled session"
+        if picked_interactively:
+            title = click.prompt("Title", default=title, show_default=False)
 
     if interactive and category is None:
         cats = list_categories(path)
-        click.echo(f"\nTitle: {title}")
+        click.echo()
         if cats:
             click.echo(f"Existing categories: {', '.join(cats)}")
         cat_input = click.prompt("Category", default="", show_default=False)
@@ -92,14 +113,20 @@ def run_bookmark(
     if category is None:
         category = ""
 
+    config = load_aweswitch_config()
+
     if profile is None and source_path:
         try:
             meta = parse_session_meta(source_path)
-            config = load_aweswitch_config()
             if config:
                 profile = detect_profile({"ANTHROPIC_BASE_URL": "", "ANTHROPIC_MODEL": meta.get("model", "")})
         except Exception:
             pass
+
+    if picked_interactively:
+        profile = _prompt_profile(profile, config)
+    else:
+        profile = _validate_profile(profile, config)
 
     bookmark = Bookmark(
         id="",

@@ -4,7 +4,6 @@ import json
 import os
 from pathlib import Path
 
-
 AWESWITCH_CONFIG = Path("~/.config/aweswitch/config.json")
 
 
@@ -56,8 +55,8 @@ def detect_profile(session_env: dict) -> str | None:
     return None
 
 
-def profile_exists(profile_name: str) -> bool:
-    config = load_aweswitch_config()
+def profile_exists(profile_name: str, config: dict | None = None) -> bool:
+    config = config if config is not None else load_aweswitch_config()
     if not config:
         return False
     for _provider, profiles in config.get("profiles", {}).items():

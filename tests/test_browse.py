@@ -115,10 +115,13 @@ class BrowseTests(unittest.TestCase):
     def test_normal_shortcuts_include_enter_resume(self):
         from aweshelf.tui.app import NORMAL_SHORTCUT_TEXT
         self.assertIn("enter Resume selected session", NORMAL_SHORTCUT_TEXT)
+        self.assertIn("/ Search", NORMAL_SHORTCUT_TEXT)
 
     def test_edit_shortcuts_describe_inline_cell_editing(self):
         from aweshelf.tui.app import EDIT_SHORTCUT_TEXT
         self.assertIn("enter Save cell", EDIT_SHORTCUT_TEXT)
+        self.assertIn("up/down Row", EDIT_SHORTCUT_TEXT)
+        self.assertIn("left/right Field", EDIT_SHORTCUT_TEXT)
         self.assertIn("tab Next field", EDIT_SHORTCUT_TEXT)
         self.assertIn("esc Done", EDIT_SHORTCUT_TEXT)
 
@@ -218,6 +221,7 @@ class BrowseInteractionTests(unittest.IsolatedAsyncioTestCase):
 
             self.assertEqual(app._app_mode, MODE_EDIT)
             self.assertEqual(app._edit_attr, "title")
+            self.assertEqual(app.query_one("#table").cursor_type, "cell")
             self.assertEqual(len(list(app.query(".edit-field"))), 0)
             app._edit_value = "Changed"
 
@@ -246,6 +250,41 @@ class BrowseInteractionTests(unittest.IsolatedAsyncioTestCase):
 
             self.assertEqual(app._edit_attr, "aweswitch_profile")
 
+    async def test_edit_arrow_keys_move_between_editable_cells(self):
+        app = BookmarkBrowser()
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            await pilot.press("down")
+            await pilot.pause()
+            await pilot.press("e")
+            await pilot.pause()
+
+            self.assertEqual(app._selected.id, "aweshelf_0001")
+            self.assertEqual(app._edit_attr, "title")
+
+            await pilot.press("right")
+            await pilot.pause()
+
+            self.assertEqual(app._selected.id, "aweshelf_0001")
+            self.assertEqual(app._edit_attr, "aweswitch_profile")
+
+            await pilot.press("down")
+            await pilot.pause()
+
+            self.assertEqual(app._selected.id, "aweshelf_0002")
+            self.assertEqual(app._edit_attr, "aweswitch_profile")
+            self.assertEqual(app._edit_value, "codex")
+
+            app._edit_value = "cc-glm"
+            await pilot.press("enter")
+            await pilot.pause()
+
+            self.assertEqual(app._app_mode, "edit")
+            self.assertEqual(app._selected.id, "aweshelf_0002")
+
+        data = json.loads(self.path.read_text())
+        self.assertEqual(data["bookmarks"][1]["aweswitch_profile"], "cc-glm")
+
     async def test_edit_escape_returns_to_normal_mode(self):
         from aweshelf.tui.app import MODE_NORMAL
 
@@ -260,6 +299,47 @@ class BrowseInteractionTests(unittest.IsolatedAsyncioTestCase):
             await pilot.pause()
 
             self.assertEqual(app._app_mode, MODE_NORMAL)
+            self.assertEqual(app.query_one("#table").cursor_type, "row")
+
+    async def test_browse_search_matches_first_prompt_and_enter_returns_to_table(self):
+        from textual.widgets import DataTable, Input
+
+        data = json.loads(self.path.read_text())
+        data["bookmarks"][1]["first_prompt"] = "Investigate billing webhook"
+        self.path.write_text(json.dumps(data))
+
+        app = BookmarkBrowser()
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            await pilot.press("/")
+            await pilot.press("w", "e", "b", "h", "o", "o", "k")
+            await pilot.pause()
+
+            self.assertEqual(app._filter, "webhook")
+            self.assertEqual(app._selected.id, "aweshelf_0002")
+
+            await pilot.press("enter")
+            await pilot.pause()
+
+            self.assertTrue(app.query_one("#table", DataTable).has_focus)
+            self.assertEqual(app._filter, "webhook")
+            self.assertTrue(app.query_one("#search", Input).has_class("visible"))
+
+    async def test_browse_search_escape_clears_filter(self):
+        from textual.widgets import DataTable, Input
+
+        app = BookmarkBrowser()
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            await pilot.press("/")
+            await pilot.press("c", "o", "d", "e", "x")
+            await pilot.pause()
+            await pilot.press("escape")
+            await pilot.pause()
+
+            self.assertEqual(app._filter, "")
+            self.assertFalse(app.query_one("#search", Input).has_class("visible"))
+            self.assertTrue(app.query_one("#table", DataTable).has_focus)
 
 
 if __name__ == "__main__":

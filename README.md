@@ -73,7 +73,7 @@ Bookmarks are stored at `~/.config/aweshelf/bookmarks.json`. Override with `AWES
 ```bash
 aweshelf bookmark [SESSION_ID] [-t TITLE] [-c CATEGORY] [--profile PROFILE] [--verbose]
 aweshelf list [-c CATEGORY] [-p PROVIDER]
-aweshelf search QUERY              # search across title, category, session, project, profile
+aweshelf search QUERY              # search title, category, session, project, prompt, profile
 aweshelf recent [-n COUNT]
 aweshelf show BOOKMARK_ID [--json]
 aweshelf edit BOOKMARK_ID [-t TITLE] [-c CATEGORY] [--profile PROFILE]
@@ -86,6 +86,7 @@ aweshelf help [COMMAND]
 ## Browse (TUI)
 
 `aweshelf browse` opens an interactive TUI with a sidebar table and detail pane.
+`aweshelf bookmark` prompts for title, category, and aweswitch profile when picking a session interactively. Profiles must exist in aweswitch config.
 
 | Key | Action |
 |-----|--------|
@@ -101,7 +102,7 @@ aweshelf help [COMMAND]
 | `?` | Show keyboard shortcuts |
 | `q` | Quit |
 
-In edit mode: type to edit, `Tab`/`Right` to next field, `Shift+Tab`/`Left` to previous, `Enter` to save, `Esc` to exit.
+In edit mode: type to edit the active cell, `Tab`/`Right` to next field, `Shift+Tab`/`Left` to previous, `Up`/`Down` to move rows, `Enter` to save, `Esc` to exit.
 
 ## Development
 

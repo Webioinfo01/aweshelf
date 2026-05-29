@@ -39,7 +39,9 @@ The cost is not just time. It is the accumulated reasoning that made the session
 
 ## The aweshelf Workflow: Bookmark, Categorize, Restore
 
-`aweshelf` is a lightweight CLI that lets you save, organize, and restore AI coding sessions.
+`aweshelf` is a lightweight CLI that lets you save, organize, and restore AI coding sessions, also provide TUI for human operation:
+
+![](../../../resources/image/example1.png)
 
 The core loop is simple:
 

@@ -65,6 +65,17 @@ aweshelf resume aweshelf_0001        # 恢复一个会话
 pip install aweswitch
 ```
 
+## 搭配 aweskill 和 aweswitch
+
+`aweshelf` 单独就能用。但如果加上 [Webioinfo](https://we.webioinfo.top/) 生态里的两个搭档，体验会更顺滑：
+
+- **[aweskill](https://github.com/Webioinfo01/aweskill)** — 面向 47+ AI 编程 Agent 的 Skill 包管理器。把 `aweshelf` 作为 Skill 安装一次，你用的任何 Agent——Claude Code、Codex、Cursor、Gemini CLI——都能读取它的 SKILL.md 并操作 CLI，无需手动配置。把它想象成 Agent 技能的 `npm`。
+- **[aweswitch](https://github.com/mugpeng/aweswitch)** — 配置切换器，保存和恢复 API 配置。`aweshelf` 收藏会话时，会记录当时激活的 aweswitch 配置。恢复时，Agent 用完全相同的端点、模型和 Token 重启。
+
+三者配合，覆盖完整生命周期：**aweskill** 安装技能，**aweswitch** 管理 API 配置，**aweshelf** 收藏会话。Agent 处理这三件事——你专注于代码。
+
+> 想了解更多？阅读[让 AI Agent 帮你管理 aweskill](https://mp.weixin.qq.com/s/Fb0Q7nKEJtORSTz7Ukv_EA)（中文）或 [英文版](https://aweskill.webioinfo.top/articles/let-your-ai-agent-manage-aweskill-for-you/)。
+
 ## 用例 1：让 Agent 收藏会话
 
 你正在用 Claude Code 深入调试一个问题。你已经浏览了代码库，缩小了问题范围，写了一半修复。或者你正在跟 Agent 一起搭建基因注释流水线，刚刚搞定了 GFF3 解析。不管怎样，你得去开会了。

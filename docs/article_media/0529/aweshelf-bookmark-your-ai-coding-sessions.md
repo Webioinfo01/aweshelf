@@ -66,6 +66,17 @@ Without aweswitch, `aweshelf` still works — you just lose the automatic profil
 pip install aweswitch
 ```
 
+## Pair with aweskill and aweswitch
+
+`aweshelf` works well on its own. But combined with two companion tools from the [Webioinfo](https://we.webioinfo.top/) ecosystem, the workflow gets even smoother:
+
+- **[aweskill](https://github.com/Webioinfo01/aweskill)** — a skill package manager for 47+ AI coding agents. Install `aweshelf` as a skill once, and any agent you use — Claude Code, Codex, Cursor, Gemini CLI — can read its SKILL.md and operate the CLI without manual setup. Think of it as `npm` for agent skills.
+- **[aweswitch](https://github.com/mugpeng/aweswitch)** — a profile switcher that saves and restores API configurations. When `aweshelf` bookmarks a session, it records which aweswitch profile was active. Resume later, and the agent restarts with the exact same endpoint, model, and token.
+
+Together, the three tools cover the full lifecycle: **aweskill** installs the skill, **aweswitch** manages the API config, and **aweshelf** bookmarks the session. The agent handles all three — you focus on the code.
+
+> Want to go deeper? Read [Let Your AI Agent Manage aweskill for You](https://aweskill.webioinfo.top/articles/let-your-ai-agent-manage-aweskill-for-you/) (English) or the [中文版](https://mp.weixin.qq.com/s/Fb0Q7nKEJtORSTz7Ukv_EA).
+
 ## Use Case 1: Ask the Agent to Bookmark a Session
 
 You are deep into a debugging session with Claude Code. You have explored the codebase, narrowed down the issue, and written a partial fix. Or maybe you have been working with your agent to build a gene annotation pipeline and just got GFF3 parsing working. Either way, you need to stop for a meeting.

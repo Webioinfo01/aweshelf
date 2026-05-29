@@ -313,13 +313,3 @@ aweshelf browse
 ```
 
 如果你使用多套 API 配置，安装 [aweswitch](https://github.com/mugpeng/aweswitch) 即可在书签中保存和恢复配置。
-
----
-
-**安装**：`pip install aweshelf`
-
-**VS Code 扩展**：[aweshelf-ext on Marketplace](https://marketplace.visualstudio.com/items?itemName=webioinfo.aweshelf-ext)
-
-**GitHub**：[github.com/Webioinfo01/aweshelf](https://github.com/Webioinfo01/aweshelf)
-
-**更多工具**：[we.webioinfo.top](https://we.webioinfo.top/)

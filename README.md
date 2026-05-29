@@ -59,7 +59,7 @@ pip install aweswitch
 
 ## Extensions
 
-- **[aweshelf-extension/vscode](https://github.com/mugpeng/aweshelf-extension/tree/main/vscode)** — VS Code extension for browsing, searching, and resuming bookmarks from the sidebar. Install from [Marketplace](https://marketplace.visualstudio.com/items?itemName=webioinfo.aweshelf) or download the [.vsix](https://github.com/mugpeng/aweshelf-extension/releases).
+- **[aweshelf-extension/vscode](https://github.com/mugpeng/aweshelf-extension/tree/main/vscode)** — VS Code / Cursor extension for browsing, searching, and resuming bookmarks from the sidebar. Search **aweshelf-ext** in the extension marketplace, or [open in Marketplace](https://marketplace.visualstudio.com/items?itemName=webioinfo.aweshelf-ext). Also available as [.vsix](https://github.com/mugpeng/aweshelf-extension/releases).
 
 ## Supported by
 
@@ -96,9 +96,6 @@ aweshelf browse
 
 The browse view keeps bookmarks grouped by category, with the selected bookmark's details on the right.
 
-<details>
-<summary>Example human usage screenshots</summary>
-
 ![aweshelf browse view with category groups](resources/image/example1.png)
 
 Press `e` to edit the current cell in place. Title, category, and profile changes can be saved without leaving the TUI.
@@ -109,18 +106,11 @@ Press `/` to filter bookmarks by title, category, session, project, prompt, or p
 
 ![aweshelf search filter](resources/image/example3.png)
 
-</details>
-
 `aweshelf browse` opens an interactive terminal UI with a sidebar table and detail pane. Browse, search, edit, and resume bookmarks without memorizing commands.
 
-You can also use the VS Code extension to browse, search, and resume bookmarks from the sidebar.
-
-<details>
-<summary>Example VS Code usage screenshot</summary>
+You can also use the VS Code / Cursor extension to browse, search, and resume bookmarks from the sidebar. Search **aweshelf-ext** in the extension marketplace, or [open in Marketplace](https://marketplace.visualstudio.com/items?itemName=webioinfo.aweshelf-ext).
 
 ![aweshelf VS Code sidebar](resources/image/example4.png)
-
-</details>
 
 You can also use aweshelf as a regular CLI:
 

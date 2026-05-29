@@ -92,9 +92,6 @@ aweshelf browse
 
 浏览视图会按分类组织书签，右侧展示当前选中书签的详情。
 
-<details>
-<summary>人类操作截图示例</summary>
-
 ![aweshelf 带分类分组的浏览视图](resources/image/example1.png)
 
 按 `e` 可以在表格里直接编辑当前单元格，标题、分类和 profile 都可以在 TUI 内保存。
@@ -105,18 +102,11 @@ aweshelf browse
 
 ![aweshelf 搜索过滤](resources/image/example3.png)
 
-</details>
-
 `aweshelf browse` 打开交互式终端 UI，左侧为书签表格，右侧为详情面板。无需记忆命令，直接浏览、搜索、编辑和恢复书签。
 
-也可以使用 VS Code 插件，在侧边栏里浏览、搜索和恢复书签。
-
-<details>
-<summary>VS Code 使用截图示例</summary>
+也可以使用 VS Code / Cursor 插件，在侧边栏里浏览、搜索和恢复书签。在扩展市场搜索 **aweshelf-ext** 安装，或 [打开 Marketplace 页面](https://marketplace.visualstudio.com/items?itemName=webioinfo.aweshelf-ext)。
 
 ![aweshelf VS Code 侧边栏](resources/image/example4.png)
-
-</details>
 
 也可以直接调用 CLI 命令：
 

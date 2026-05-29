@@ -188,3 +188,19 @@ aweshelf help [COMMAND]
 ```bash
 python -m pytest tests/
 ```
+
+## 已知风险
+
+aweshelf 书签存储的是 `session_id` 引用——**不会**复制会话内容。
+恢复书签要求原始会话文件仍然存在于磁盘上。
+
+| 风险 | Claude Code | Codex CLI |
+|------|------------|-----------|
+| 自动清理 | 不活跃超过 30 天的文件在启动时删除 | 目前无自动清理（非文档化保证） |
+| Worktree | 会话绑定 worktree 路径；worktree 删除后 resume 可能失败 | 同上 |
+| `cleanupPeriodDays` | [已知 bug](https://github.com/anthropics/claude-code/issues/62272)：部分场景下设置被静默忽略 | 不适用 |
+
+缓解方式：在 `~/.claude/settings.json` 中增大 `cleanupPeriodDays`（如 `365`），但需验证是否生效。
+对于关键会话，建议手动备份 JSONL 文件。
+
+这些风险的后续改进计划见 [docs/todo/session_retention_0529.md](docs/todo/session_retention_0529.md)。

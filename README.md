@@ -188,3 +188,19 @@ See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for setup, architecture, testin
 ```bash
 python -m pytest tests/
 ```
+
+## Known Risks
+
+aweshelf bookmarks store a `session_id` reference — they do **not** copy session content.
+Resuming a bookmark requires the original session file to still exist on disk.
+
+| Risk | Claude Code | Codex CLI |
+|------|------------|-----------|
+| Auto cleanup | Files inactive for 30 days are deleted at startup | No auto cleanup today (not a documented guarantee) |
+| Worktree | Sessions tied to worktree path; resume may fail if worktree is deleted | Same |
+| `cleanupPeriodDays` | [Known bugs](https://github.com/anthropics/claude-code/issues/62272) where the setting is silently ignored | N/A |
+
+Mitigation: extend `cleanupPeriodDays` in `~/.claude/settings.json` (e.g. `365`), but verify it takes effect.
+For critical sessions, consider backing up the JSONL file manually.
+
+These risks are tracked in [docs/todo/session_retention_0529.md](docs/todo/session_retention_0529.md).

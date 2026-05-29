@@ -58,7 +58,7 @@ But the interesting part is what gets saved. A bookmark captures:
 - a title and category (so you can find it later)
 - the aweswitch profile (so the agent restarts with the same API endpoint, model, and token)
 
-That last detail matters. If you use [aweswitch](https://github.com/mugpeng/aweswitch) to manage multiple API configurations — say, one for the official Claude API and another for a self-hosted endpoint — `aweshelf` remembers which one you were using. When you restore, the session picks up exactly where you left off.
+That last detail matters. If you use [aweswitch](https://github.com/Webioinfo01/aweswitch) to manage multiple API configurations — say, one for the official Claude API and another for a self-hosted endpoint — `aweshelf` remembers which one you were using. When you restore, the session picks up exactly where you left off.
 
 Without aweswitch, `aweshelf` still works — you just lose the automatic profile restore. Install it when you need multi-config support:
 
@@ -71,7 +71,7 @@ pip install aweswitch
 `aweshelf` works well on its own. But combined with two companion tools from the [Webioinfo](https://we.webioinfo.top/) ecosystem, the workflow gets even smoother:
 
 - **[aweskill](https://github.com/Webioinfo01/aweskill)** — a skill package manager for 47+ AI coding agents. Install `aweshelf` as a skill once, and any agent you use — Claude Code, Codex, Cursor, Gemini CLI — can read its SKILL.md and operate the CLI without manual setup. Think of it as `npm` for agent skills.
-- **[aweswitch](https://github.com/mugpeng/aweswitch)** — a profile switcher that saves and restores API configurations. When `aweshelf` bookmarks a session, it records which aweswitch profile was active. Resume later, and the agent restarts with the exact same endpoint, model, and token.
+- **[aweswitch](https://github.com/Webioinfo01/aweswitch)** — a profile switcher that saves and restores API configurations. When `aweshelf` bookmarks a session, it records which aweswitch profile was active. Resume later, and the agent restarts with the exact same endpoint, model, and token.
 
 Together, the three tools cover the full lifecycle: **aweskill** installs the skill, **aweswitch** manages the API config, and **aweshelf** bookmarks the session. The agent handles all three — you focus on the code.
 
@@ -170,7 +170,7 @@ The agent runs:
 aweshelf resume aweshelf_0003 --profile cc-glm
 ```
 
-If you use [aweswitch](https://github.com/mugpeng/aweswitch), `aweshelf` stored the original profile in the bookmark. You can resume with the same profile by default, or switch to any configured profile.
+If you use [aweswitch](https://github.com/Webioinfo01/aweswitch), `aweshelf` stored the original profile in the bookmark. You can resume with the same profile by default, or switch to any configured profile.
 
 This is useful when you want to test how a different model handles the same task, or when you need to switch providers for cost or availability reasons. The agent handles the switch; you focus on the work.
 
@@ -297,8 +297,8 @@ It does not try to be a platform. It does not sync to the cloud. It does not req
 `aweshelf` is part of the [Webioinfo](https://we.webioinfo.top/) ecosystem — a collection of tools for AI-assisted development:
 
 - **[aweskill](https://aweskill.webioinfo.top/)** — CLI-first Skill package manager for 47+ AI coding agents. Install, update, and project Skills across Claude Code, Codex, Cursor, and more.
-- **[awescholar](https://github.com/mugpeng/awescholar)** — Automated scientific literature discovery. Search, annotate, filter, and generate research reports with LLM-powered pipelines.
-- **[aweswitch](https://github.com/mugpeng/aweswitch)** — Agent profile switcher. Launch sessions with different API endpoints, tokens, and models.
+- **[awescholar](https://github.com/Webioinfo01/awescholar)** — Automated scientific literature discovery. Search, annotate, filter, and generate research reports with LLM-powered pipelines.
+- **[aweswitch](https://github.com/Webioinfo01/aweswitch)** — Agent profile switcher. Launch sessions with different API endpoints, tokens, and models.
 
 ## Try It
 
@@ -326,7 +326,7 @@ Or ask your coding agent:
 Read https://github.com/Webioinfo01/aweshelf/blob/main/README.ai.md and follow it to install aweshelf for this agent.
 ```
 
-If you use multiple API configurations, install [aweswitch](https://github.com/mugpeng/aweswitch) to save and restore profiles alongside bookmarks.
+If you use multiple API configurations, install [aweswitch](https://github.com/Webioinfo01/aweswitch) to save and restore profiles alongside bookmarks.
 
 ---
 

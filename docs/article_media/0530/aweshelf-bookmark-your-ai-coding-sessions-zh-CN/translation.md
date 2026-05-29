@@ -58,7 +58,7 @@ aweshelf resume aweshelf_0001        # 恢复一个会话
 - 标题和分类（以便你以后能找到它）
 - aweswitch 的 profile（以便 Agent 用相同的 API 端点、模型和 Token 重启）
 
-最后这点很重要。如果你用 [aweswitch](https://github.com/mugpeng/aweswitch) 管理多套 API 配置——比如一套用官方 Claude API，一套用自建端点——`aweshelf` 会记住你当时用的是哪套。恢复时，会话从上次中断的地方继续。
+最后这点很重要。如果你用 [aweswitch](https://github.com/Webioinfo01/aweswitch) 管理多套 API 配置——比如一套用官方 Claude API，一套用自建端点——`aweshelf` 会记住你当时用的是哪套。恢复时，会话从上次中断的地方继续。
 
 不用 aweswitch 也行，`aweshelf` 仍然可用——只是不会自动恢复配置。需要多配置支持时再安装：
 
@@ -71,7 +71,7 @@ pip install aweswitch
 `aweshelf` 单独就能用。但如果加上 [Webioinfo](https://we.webioinfo.top/) 生态里的两个搭档，体验会更顺滑：
 
 - **[aweskill](https://github.com/Webioinfo01/aweskill)** — 面向 47+ AI 编程 Agent 的 Skill 包管理器。把 `aweshelf` 作为 Skill 安装一次，你用的任何 Agent——Claude Code、Codex、Cursor、Gemini CLI——都能读取它的 SKILL.md 并操作 CLI，无需手动配置。把它想象成 Agent 技能的 `npm`。
-- **[aweswitch](https://github.com/mugpeng/aweswitch)** — 配置切换器，保存和恢复 API 配置。`aweshelf` 收藏会话时，会记录当时激活的 aweswitch 配置。恢复时，Agent 用完全相同的端点、模型和 Token 重启。
+- **[aweswitch](https://github.com/Webioinfo01/aweswitch)** — 配置切换器，保存和恢复 API 配置。`aweshelf` 收藏会话时，会记录当时激活的 aweswitch 配置。恢复时，Agent 用完全相同的端点、模型和 Token 重启。
 
 三者配合，覆盖完整生命周期：**aweskill** 安装技能，**aweswitch** 管理 API 配置，**aweshelf** 收藏会话。Agent 处理这三件事——你专注于代码。
 
@@ -170,7 +170,7 @@ Agent 执行：
 aweshelf resume aweshelf_0003 --profile cc-glm
 ```
 
-如果你用 [aweswitch](https://github.com/mugpeng/aweswitch)，`aweshelf` 会在书签中保存原始配置。默认用相同配置恢复，也可以切换到任意其他已有的配置。
+如果你用 [aweswitch](https://github.com/Webioinfo01/aweswitch)，`aweshelf` 会在书签中保存原始配置。默认用相同配置恢复，也可以切换到任意其他已有的配置。
 
 这在你想测试不同模型处理同一任务的效果时很有用，或者因为成本、可用性原因需要切换提供商时。Agent 处理切换，你专注于工作。
 
@@ -295,8 +295,8 @@ aweshelf edit aweshelf_0012 -t "DEG analysis — fixed batch effect" -c bioinfo
 `aweshelf` 是 [Webioinfo](https://we.webioinfo.top/) 生态的一部分——一系列面向 AI 辅助开发的工具：
 
 - **[aweskill](https://aweskill.webioinfo.top/)** — 面向 47+ AI 编程 Agent 的 CLI Skill 包管理器。在 Claude Code、Codex、Cursor 等 Agent 之间安装、更新和投影 Skill。
-- **[awescholar](https://github.com/mugpeng/awescholar)** — 自动化科学文献检索。搜索、标注、过滤，用 LLM 流水线生成研究报告。
-- **[aweswitch](https://github.com/mugpeng/aweswitch)** — Agent 配置切换器。用不同的 API 端点、Token 和模型启动会话。
+- **[awescholar](https://github.com/Webioinfo01/awescholar)** — 自动化科学文献检索。搜索、标注、过滤，用 LLM 流水线生成研究报告。
+- **[aweswitch](https://github.com/Webioinfo01/aweswitch)** — Agent 配置切换器。用不同的 API 端点、Token 和模型启动会话。
 
 ## 试一试
 
@@ -324,7 +324,7 @@ aweshelf browse
 读一下 https://github.com/Webioinfo01/aweshelf/blob/main/README.ai.md ，按照说明为这个 Agent 安装 aweshelf。
 ```
 
-如果你使用多套 API 配置，安装 [aweswitch](https://github.com/mugpeng/aweswitch) 即可在书签中保存和恢复配置。
+如果你使用多套 API 配置，安装 [aweswitch](https://github.com/Webioinfo01/aweswitch) 即可在书签中保存和恢复配置。
 
 ---
 

@@ -1,6 +1,6 @@
 <div align="center">
   <img src="logo/aweshelf.png" alt="aweshelf" width="860">
-  <h1>aweshelf: Session Bookmark Manager <a href="https://github.com/Webioinfo01/aweskill"><img src="https://raw.githubusercontent.com/Webioinfo01/aweskill/main/logo/aweskill-badge2.svg" alt="aweskill companion"></a></h1>
+  <h1>aweshelf: AI Agents Session Bookmark Manager <a href="https://github.com/Webioinfo01/aweskill"><img src="https://raw.githubusercontent.com/Webioinfo01/aweskill/main/logo/aweskill-badge2.svg" alt="aweskill companion"></a></h1>
   <p><strong>Bookmark, categorize, and restore AI coding sessions with aweswitch profiles.</strong></p>
   <p>A lightweight CLI-first tool for Claude Code and Codex session management.</p>
   <p>

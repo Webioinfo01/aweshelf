@@ -1,0 +1,30 @@
+标题：发现个宝藏工具，会话再也不丢了（19/20）
+
+正文：
+看到 Codex 团队的 Jason 说了句话——"会话持久化是用好 Agent 的第一条建议"，我直接共鸣了。
+
+之前用 Claude Code 调试一个 auth 竞态条件，花了一小时终于理清了，结果关掉终端，第二天全忘了。翻 shell history、grep git log，模模糊糊记得个文件路径，又得从头解释一遍。
+
+后来发现了 aweshelf，绝了。
+
+就三行命令：
+aweshelf bookmark — 保存当前会话
+aweshelf list — 看所有会话
+aweshelf resume aweshelf_0001 — 从断点继续
+
+几个我觉得特别爽的点：
+跨 Agent — Claude Code、Codex、Cursor、Gemini CLI 都能用，不挑食
+跨目录 — 所有项目的会话统一管理，切项目不丢历史
+配置感知 — 恢复的时候自动用同一套 API 端点和模型，不用手动切换
+有 TUI — 终端里可视化浏览、搜索、编辑，比纯命令行舒服多了
+还有 VS Code 扩展 — 侧边栏点一下就能恢复
+
+最骚的是可以直接跟 Agent 说"帮我收藏这个会话"，它自己就执行了，都不用手动打命令。
+
+数据就是本地一个 JSON 文件，不上云不同步，简单可靠。
+
+pip install aweshelf 就能试，项目在 Webioinfo01/aweshelf，有兴趣的可以看看。
+
+（809/1000）
+
+标签：#AI编程 #Claude #Cursor #效率工具 #程序员 #aweshelf

@@ -1,0 +1,21 @@
+看到 Codex 团队的 Jason 说"会话持久化是用好 Codex 的第一条建议"，我深有感触。我经常用 Claude Code 调试问题，花了一小时理清思路，关掉终端，第二天打开——上下文全没了，只能从头解释。
+
+所以我做了 aweshelf，一行命令就能把会话收藏起来：
+
+aweshelf bookmark → 收藏当前会话
+aweshelf list → 查看所有会话
+aweshelf resume aweshelf_0001 → 从断点继续
+
+几个我觉得比较重要的点：
+跨 Agent——Claude Code、Codex、Cursor、Gemini CLI 都能用
+跨目录——所有项目的会话统一管理
+配置感知——恢复时自动用相同的 API 端点和模型
+TUI 浏览——终端内可视化浏览、搜索、编辑
+VS Code 扩展——侧边栏一键恢复
+也可以直接跟 Agent 说"帮我收藏这个会话"，它就知道该怎么做
+
+我的思路是：Agent 负责保存，我负责浏览和判断。数据就是本地一个 JSON 文件，没有云端，没有同步层。
+
+pip install aweshelf 就能开始用。
+
+项目在 Webioinfo01/aweshelf

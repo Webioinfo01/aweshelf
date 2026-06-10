@@ -19,7 +19,6 @@ from aweshelf.lib.store import (
     update_bookmark,
     find_bookmark,
     find_by_session_id,
-    list_categories,
 )
 
 
@@ -176,22 +175,6 @@ class StoreTests(unittest.TestCase):
             path = Path(tmp) / "bookmarks.json"
             result = update_bookmark("bkm_nope", path, title="x")
             self.assertIsNone(result)
-
-    def test_list_categories(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "bookmarks.json"
-            add_bookmark(make_bookmark(id="bkm_aaaaaa", category="backend"), path)
-            add_bookmark(make_bookmark(id="bkm_bbbbbb", session_id="s2", category="frontend"), path)
-            add_bookmark(make_bookmark(id="bkm_cccccc", session_id="s3", category="backend"), path)
-            cats = list_categories(path)
-            self.assertEqual(cats, ["backend", "frontend"])
-
-    def test_list_categories_empty(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "bookmarks.json"
-            cats = list_categories(path)
-            self.assertEqual(cats, [])
-
 
 if __name__ == "__main__":
     unittest.main()

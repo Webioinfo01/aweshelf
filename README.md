@@ -149,6 +149,9 @@ Bookmarks are stored at `~/.config/aweshelf/bookmarks.json`. Override with `AWES
 
 ```bash
 aweshelf bookmark [SESSION_ID] [-t TITLE] [-c CATEGORY] [--profile PROFILE] [--current] [--verbose]
+aweshelf category add NAME
+aweshelf category list [--json] [--sessions|-s]
+aweshelf category rm NAME [--force]
 aweshelf list [-c CATEGORY] [-p PROVIDER]
 aweshelf search QUERY              # search title, category, session, project, prompt, profile
 aweshelf recent [-n COUNT]

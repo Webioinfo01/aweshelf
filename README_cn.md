@@ -116,6 +116,9 @@ aweshelf browse
 
 ```bash
 aweshelf bookmark                    # 收藏当前会话
+aweshelf category add NAME           # 新建分类
+aweshelf category list [--json] [--sessions/-s]  # 列出分类，--sessions 同时显示分类下会话
+aweshelf category rm NAME [--force]  # 删除分类；--force 会清空引用该分类的书签
 aweshelf list                        # 列出所有书签
 aweshelf resume aweshelf_0001        # 恢复书签
 aweshelf search "auth"               # 搜索书签

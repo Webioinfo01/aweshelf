@@ -12,10 +12,10 @@ from aweshelf.lib.session import parse_session_meta
 from aweshelf.lib.store import (
     add_bookmark,
     bookmark_path,
-    list_categories,
     load_bookmarks,
     save_bookmarks,
 )
+from aweshelf.lib.category import list_categories
 from aweshelf.types import Bookmark
 
 DEFAULT_LIST_LIMIT = 10

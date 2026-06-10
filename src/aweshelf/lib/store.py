@@ -11,6 +11,8 @@ from aweshelf.types import Bookmark
 
 CONFIG_DIR = Path("~/.config/aweshelf")
 ID_RE = re.compile(r"^aweshelf_(\d+)$")
+BOOKMARKS_KEY = "bookmarks"
+CATEGORIES_KEY = "categories"
 
 
 class BookmarkStoreError(ValueError):
@@ -34,11 +36,33 @@ def generate_id(bookmarks: list[Bookmark] | None = None) -> str:
     return f"aweshelf_{highest + 1:04d}"
 
 
-def load_bookmarks(path: Path | None = None) -> list[Bookmark]:
+def _normalize_category(category: str | None) -> str:
+    return (category or "").strip()
+
+
+def _coerce_categories(raw_categories: object) -> list[str]:
+    if raw_categories is None:
+        return []
+    if not isinstance(raw_categories, list):
+        raise BookmarkStoreError("bookmark store categories must be a list")
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for category in raw_categories:
+        if not isinstance(category, str):
+            raise BookmarkStoreError(f"invalid category in store: {category!r}")
+        normalized_category = _normalize_category(category)
+        if not normalized_category or normalized_category in seen:
+            continue
+        seen.add(normalized_category)
+        normalized.append(normalized_category)
+    return normalized
+
+
+def load_store(path: Path | None = None) -> tuple[list[Bookmark], list[str]]:
     path = path or bookmark_path()
     path = Path(path).expanduser()
     if not path.exists():
-        return []
+        return [], []
     try:
         data = json.loads(path.read_text())
     except json.JSONDecodeError as exc:
@@ -47,18 +71,37 @@ def load_bookmarks(path: Path | None = None) -> list[Bookmark]:
         raise BookmarkStoreError(f"failed to read bookmark store at {path}: {exc}") from exc
     if not isinstance(data, dict) or not isinstance(data.get("bookmarks", []), list):
         raise BookmarkStoreError(f"bookmark store at {path} must contain a bookmarks list")
-    raw = data.get("bookmarks", [])
+    raw = data.get(BOOKMARKS_KEY, [])
+    raw_categories = data.get(CATEGORIES_KEY, [])
     try:
-        return [Bookmark.from_dict(b) for b in raw]
+        bookmarks = [Bookmark.from_dict(b) for b in raw]
+        categories = _coerce_categories(raw_categories)
+        return bookmarks, categories
     except (KeyError, TypeError) as exc:
         raise BookmarkStoreError(f"bookmark store at {path} contains invalid bookmark data") from exc
 
 
-def save_bookmarks(bookmarks: list[Bookmark], path: Path | None = None) -> None:
+def load_bookmarks(path: Path | None = None) -> list[Bookmark]:
+    bookmarks, _ = load_store(path)
+    return bookmarks
+
+
+def save_bookmarks(
+    bookmarks: list[Bookmark],
+    path: Path | None = None,
+    categories: list[str] | None = None,
+) -> None:
     path = path or bookmark_path()
     path = Path(path).expanduser()
     path.parent.mkdir(parents=True, exist_ok=True)
-    data = {"version": 1, "bookmarks": [b.to_dict() for b in bookmarks]}
+    if categories is None:
+        _, categories = load_store(path)
+    merged_categories = sorted(set(categories or []) | set(b.category for b in bookmarks if b.category))
+    data = {
+        "version": 1,
+        BOOKMARKS_KEY: [b.to_dict() for b in bookmarks],
+        CATEGORIES_KEY: merged_categories,
+    }
     fd, tmp_name = tempfile.mkstemp(prefix=".bookmarks-", suffix=".json", dir=str(path.parent))
     try:
         with os.fdopen(fd, "w") as handle:
@@ -120,12 +163,6 @@ def update_bookmark(bookmark_id: str, path: Path | None = None, **fields) -> Boo
     return None
 
 
-def list_categories(path: Path | None = None) -> list[str]:
-    bookmarks = load_bookmarks(path)
-    cats = sorted(set(b.category for b in bookmarks if b.category))
-    return cats
-
-
 def filter_bookmarks(bookmarks: list[Bookmark], query: str) -> list[Bookmark]:
     """Search bookmarks across title, category, session ID, project, first prompt, and profile."""
     q = query.lower()
@@ -162,3 +199,24 @@ def format_bookmark_detail(b: Bookmark, max_first_prompt: int = 0) -> str:
         f"Bookmarked at:    {b.bookmarked_at}",
     ]
     return "\n".join(lines)
+
+
+def list_categories(path: Path | None = None) -> list[str]:
+    """Backward-compatible shim for category listing."""
+    from aweshelf.lib.category import list_categories as list_categories_impl
+
+    return list_categories_impl(path)
+
+
+def add_category(category: str, path: Path | None = None) -> str:
+    """Backward-compatible shim for category creation."""
+    from aweshelf.lib.category import add_category as add_category_impl
+
+    return add_category_impl(category, path)
+
+
+def remove_category(category: str, path: Path | None = None, *, clear_bookmarks: bool = False) -> bool:
+    """Backward-compatible shim for category removal."""
+    from aweshelf.lib.category import remove_category as remove_category_impl
+
+    return remove_category_impl(category, path, clear_bookmarks=clear_bookmarks)

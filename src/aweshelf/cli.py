@@ -9,6 +9,7 @@ from aweshelf.commands.show import show_command, edit_command, rm_command
 from aweshelf.commands.resume import resume_command
 from aweshelf.commands.browse import browse_command
 from aweshelf.commands.sessions import sessions_command
+from aweshelf.commands.category import category_command
 
 
 @click.group(
@@ -31,6 +32,7 @@ cli.add_command(rm_command)
 cli.add_command(resume_command)
 cli.add_command(browse_command)
 cli.add_command(sessions_command)
+cli.add_command(category_command)
 
 
 def main(argv=None):

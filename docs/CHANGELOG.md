@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.1.7
+
+Better list output and category-as-view model.
+
+Inspired by [PR #2](https://github.com/Webioinfo01/aweshelf/pull/2) (category management), this release takes a simpler approach: categories are derived from bookmarks, not managed as independent entities. Instead of `category add/list/rm` commands, `aweshelf list --by category` provides the same visibility with zero state to maintain.
+
+### Highlights
+
+- `aweshelf list --by category|provider|profile` — group and count bookmarks by any dimension
+- `aweshelf sessions` removes redundant PROJECT column (filtered by current project already)
+- `aweshelf sessions -n` help now shows default value (20); output hints when truncated
+- `aweshelf list` adds PROJECT column to distinguish cross-project bookmarks
+
 ## v0.1.6
 
 Docs refresh and version sync.

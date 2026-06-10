@@ -1,14 +1,59 @@
 """List, search, recent commands."""
 
 import json
+from collections import Counter
 
 import click
 
 from aweshelf.lib.store import filter_bookmarks, load_bookmarks
 
+BY_FIELDS = {
+    "category": "category",
+    "provider": "provider",
+    "profile": "aweswitch_profile",
+}
+
 
 def format_json(bookmarks: list) -> str:
     return json.dumps([b.to_dict() for b in bookmarks], indent=2, ensure_ascii=False)
+
+
+def _group_by(bookmarks: list, field: str) -> list[tuple[str, int]]:
+    """Group bookmarks by field, return sorted (value, count) pairs."""
+    counts = Counter(getattr(b, field) or "-" for b in bookmarks)
+    return sorted(counts.items(), key=lambda x: (-x[1], x[0]))
+
+
+def format_by(bookmarks: list, field: str) -> str:
+    grouped = _group_by(bookmarks, field)
+    if not grouped:
+        return "No bookmarks found."
+
+    label = field.replace("aweswitch_profile", "profile").upper()
+    headers = [label, "COUNT"]
+    rows = [[value, str(count)] for value, count in grouped]
+    widths = [len(h) for h in headers]
+    for row in rows:
+        for i, cell in enumerate(row):
+            widths[i] = max(widths[i], len(cell))
+
+    lines = [
+        "  ".join(h.ljust(widths[i]) for i, h in enumerate(headers)),
+        "  ".join("-" * w for w in widths),
+    ]
+    for row in rows:
+        lines.append("  ".join(cell.ljust(widths[i]) for i, cell in enumerate(row)))
+    return "\n".join(lines)
+
+
+def format_by_json(bookmarks: list, field: str) -> str:
+    label = field.replace("aweswitch_profile", "profile")
+    grouped = _group_by(bookmarks, field)
+    return json.dumps(
+        [{label: value, "count": count} for value, count in grouped],
+        indent=2,
+        ensure_ascii=False,
+    )
 
 
 def format_table(bookmarks: list) -> str:
@@ -53,14 +98,20 @@ def format_table(bookmarks: list) -> str:
 @click.option("-s", "--sort", "sort_by", type=click.Choice(["id", "recent"]), default="id",
               help="Sort order (default: id).")
 @click.option("-n", "--limit", default=0, type=int, help="Max rows to show (0 = all).")
+@click.option("--by", "group_by", type=click.Choice(list(BY_FIELDS)),
+              help="Group and count by field instead of listing rows.")
 @click.option("--json", "as_json", is_flag=True, help="Output as raw JSON.")
-def list_command(category, provider, sort_by, limit, as_json):
+def list_command(category, provider, sort_by, limit, group_by, as_json):
     """List all bookmarks."""
     bookmarks = load_bookmarks()
     if category:
         bookmarks = [b for b in bookmarks if b.category == category]
     if provider:
         bookmarks = [b for b in bookmarks if b.provider == provider]
+    if group_by:
+        field = BY_FIELDS[group_by]
+        click.echo(format_by_json(bookmarks, field) if as_json else format_by(bookmarks, field))
+        return
     if sort_by == "recent":
         bookmarks.sort(key=lambda b: b.bookmarked_at, reverse=True)
     if limit > 0:

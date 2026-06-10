@@ -15,14 +15,18 @@ def format_table(bookmarks: list) -> str:
     if not bookmarks:
         return "No bookmarks found."
 
-    headers = ["ID", "PROVIDER", "TITLE", "CATEGORY", "PROFILE", "SESSION"]
+    headers = ["ID", "PROVIDER", "TITLE", "CATEGORY", "PROJECT", "PROFILE", "SESSION"]
     rows = []
     for b in bookmarks:
+        project = b.project_path or "-"
+        if len(project) > 30:
+            project = project[:27] + "..."
         rows.append([
             b.id,
             b.provider,
             b.title[:40] + ("..." if len(b.title) > 40 else ""),
             b.category or "-",
+            project,
             b.aweswitch_profile or "-",
             b.session_id,
         ])

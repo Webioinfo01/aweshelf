@@ -14,12 +14,11 @@ def format_sessions_json(sessions: list[dict]) -> str:
 def format_sessions_table(sessions: list[dict]) -> str:
     if not sessions:
         return "No sessions found."
-    headers = ["PROVIDER", "TITLE", "PROJECT", "SESSION"]
+    headers = ["PROVIDER", "TITLE", "SESSION"]
     rows = [
         [
             s.get("provider", "-"),
             _truncate(s.get("title", "Untitled session"), 48),
-            _truncate(s.get("project_path", "-") or "-", 40),
             s.get("session_id", "-"),
         ]
         for s in sessions
@@ -38,14 +37,20 @@ def format_sessions_table(sessions: list[dict]) -> str:
 
 
 @click.command("sessions")
-@click.option("-n", "--limit", default=20, type=int, help="Max sessions to show (0 = all).")
+@click.option("-n", "--limit", default=20, type=int, help="Max sessions to show. Default: 20. Use 0 for all.")
 @click.option("--json", "as_json", is_flag=True, help="Output as raw JSON.")
 def sessions_command(limit, as_json):
     """List discoverable sessions in the current project."""
-    sessions = find_project_sessions()
+    all_sessions = find_project_sessions()
+    total = len(all_sessions)
     if limit > 0:
-        sessions = sessions[:limit]
-    click.echo(format_sessions_json(sessions) if as_json else format_sessions_table(sessions))
+        sessions = all_sessions[:limit]
+    else:
+        sessions = all_sessions
+    output = format_sessions_json(sessions) if as_json else format_sessions_table(sessions)
+    click.echo(output)
+    if limit > 0 and total > limit:
+        click.echo(f"\nShowing {limit} of {total} sessions. Use -n 0 to show all.")
 
 
 def _truncate(value: str, limit: int) -> str:

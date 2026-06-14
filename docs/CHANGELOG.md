@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.1.8
 
 Non-interactive bookmarking for agents and scripting.
 

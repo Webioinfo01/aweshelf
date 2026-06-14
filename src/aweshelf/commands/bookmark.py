@@ -158,10 +158,11 @@ def run_bookmark(
         session = find_recent_session()
         if session is None:
             raise SystemExit("aweshelf: no session found in current project")
-        _confirm_current_session(session)
+        if interactive:
+            _confirm_current_session(session)
         session_id = session["session_id"]
         existing_bookmark = existing_by_session.get(session_id)
-        if existing_bookmark and not click.confirm(
+        if existing_bookmark and interactive and not click.confirm(
             f"Session already bookmarked as {existing_bookmark.id}. Update it?",
             default=False,
         ):
@@ -198,7 +199,7 @@ def run_bookmark(
         if prompts_from_discovered_session:
             title = click.prompt("Title (blank keeps current/default title)", default=title, show_default=False)
 
-    if interactive and category is None:
+    if interactive and category is None and prompts_from_discovered_session:
         cats = list_categories(path)
         click.echo()
         if cats:
@@ -255,7 +256,8 @@ def run_bookmark(
 @click.option("--profile", default=None, help="aweswitch profile to use.")
 @click.option("--current", is_flag=True, help="Bookmark the most recent session in this project.")
 @click.option("--verbose", is_flag=True, help="Show all sessions (no limit).")
-def bookmark_command(session_id, title, category, profile, current, verbose):
+@click.option("--no-interactive", is_flag=True, help="Skip all prompts; use defaults or passed values.")
+def bookmark_command(session_id, title, category, profile, current, verbose, no_interactive):
     """Bookmark a session for quick access."""
     try:
         b = run_bookmark(
@@ -263,7 +265,7 @@ def bookmark_command(session_id, title, category, profile, current, verbose):
             title,
             category,
             profile,
-            interactive=True,
+            interactive=not no_interactive,
             verbose=verbose,
             current=current,
         )

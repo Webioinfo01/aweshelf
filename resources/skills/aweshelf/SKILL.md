@@ -36,11 +36,12 @@ For aweswitch profile integration (auto-detecting API endpoint/model), install [
 ## Core Rules
 
 1. `aweshelf bookmark` without arguments opens an interactive session picker in the current project. Use `--current` to skip the picker and bookmark the most recent session directly.
-2. If a session is already bookmarked, `bookmark` will offer to update it instead of creating a duplicate.
-3. `aweshelf resume BOOKMARK_ID` restores the session with the aweswitch profile that was active at bookmark time. Use `--profile` to override, `--raw` to skip aweswitch entirely.
-4. `aweshelf browse` opens a TUI. This is a terminal UI — it requires a real terminal, not a piped subprocess. Do not run it inside non-interactive contexts.
-5. `aweshelf list` and `aweshelf search` are safe for scripting. They output plain text and can be piped.
-6. Use `--json` with `show` to get machine-readable output.
+2. Use `--no-interactive` to skip all prompts — for agents and scripting. Bookmarks are created with defaults or passed values only.
+3. If a session is already bookmarked, `bookmark` will offer to update it instead of creating a duplicate.
+4. `aweshelf resume BOOKMARK_ID` restores the session with the aweswitch profile that was active at bookmark time. Use `--profile` to override, `--raw` to skip aweswitch entirely.
+5. `aweshelf browse` opens a TUI. This is a terminal UI — it requires a real terminal, not a piped subprocess. Do not run it inside non-interactive contexts.
+6. `aweshelf list` and `aweshelf search` are safe for scripting. They output plain text and can be piped.
+7. Use `--json` with `show` to get machine-readable output.
 
 ## Workflows
 
@@ -61,12 +62,17 @@ aweshelf bookmark 550e8400-... -t "Refactor API" -c backend
 
 # Specify aweswitch profile
 aweshelf bookmark --current --profile cc-glm
+
+# Non-interactive: for agents and scripting (zero prompts)
+aweshelf bookmark <SESSION_ID> -t "title" --no-interactive
+aweshelf bookmark --current --no-interactive
 ```
 
 Decision order:
 1. `--current` is fastest — one confirmation, done.
 2. Without arguments — interactive picker shows sessions in the current project directory.
-3. With `SESSION_ID` — bookmark a specific session directly (no picker).
+3. With `SESSION_ID` — bookmark a specific session directly (no picker). Prompts for title/category/profile unless `--no-interactive` is set.
+4. Always use `--no-interactive` in agent/script context to avoid blocking on prompts.
 
 ### List and Search
 

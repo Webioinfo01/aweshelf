@@ -21,10 +21,11 @@
   </p>
 </div>
 
+## Powered by aweshelf
 
-> Bookmark, categorize, and restore AI coding sessions with aweswitch profiles.
+- **[aweswitch](https://github.com/Webioinfo01/aweswitch)** — Agent profile switcher. Launch sessions with different API endpoints, tokens, and models.
 
-aweshelf lets you save your favorite Claude Code and Codex sessions, tag them with categories, and restore them instantly — including the aweswitch profile (API endpoint, model, token) that was active when you bookmarked.
+  aweswitch manages how you **launch** sessions; aweshelf manages how you **remember** them. Use `aweswitch -c` to auto-bookmark at launch, and `aweshelf resume` to restore with the same profile later.
 
 ## Install
 
@@ -112,6 +113,23 @@ You can also use the VS Code / Cursor extension to browse, search, and resume bo
 
 ![aweshelf VS Code sidebar](resources/image/example4.png)
 
+### Auto-bookmark with aweswitch
+
+If you use [aweswitch](https://github.com/Webioinfo01/aweswitch) to manage profiles, sessions can be bookmarked automatically at launch:
+
+```bash
+aweswitch -c                    # launch + auto-bookmark
+aweswitch -c --profile cc-glm   # launch with profile + auto-bookmark
+```
+
+Later, restore with the same profile:
+
+```bash
+aweshelf resume aweshelf_0001   # restore with stored profile
+```
+
+aweshelf bookmarks sessions after the fact; aweswitch bridges this gap — the session is saved the moment you launch it. No manual `aweshelf bookmark` step needed.
+
 You can also use aweshelf as a regular CLI:
 
 ```bash
@@ -148,7 +166,7 @@ Bookmarks are stored at `~/.config/aweshelf/bookmarks.json`. Override with `AWES
 ## Commands
 
 ```bash
-aweshelf bookmark [SESSION_ID] [-t TITLE] [-c CATEGORY] [--profile PROFILE] [--current] [--verbose]
+aweshelf bookmark [SESSION_ID] [-t TITLE] [-c CATEGORY] [--profile PROFILE] [--current] [--verbose] [--no-interactive]
 aweshelf list [-c CATEGORY] [-p PROVIDER]
 aweshelf search QUERY              # search title, category, session, project, prompt, profile
 aweshelf recent [-n COUNT]
@@ -163,7 +181,7 @@ aweshelf help [COMMAND]
 ## Browse (TUI)
 
 `aweshelf browse` opens an interactive TUI with a sidebar table and detail pane.
-`aweshelf bookmark` marks already-bookmarked sessions and can update them after confirmation. Use `aweshelf bookmark --current` to confirm and save the most recent session in the current project without opening the session picker. Interactive bookmarking prompts for title, category, and Claude aweswitch profile; profile selection is skipped when aweswitch is not configured.
+`aweshelf bookmark` marks already-bookmarked sessions and can update them after confirmation. Use `aweshelf bookmark --current` to confirm and save the most recent session in the current project without opening the session picker. Interactive bookmarking prompts for title, category, and Claude aweswitch profile; profile selection is skipped when aweswitch is not configured. Use `--no-interactive` to skip all prompts — for agents and scripting, bookmarks are created with defaults or passed values only.
 
 | Key | Action |
 |-----|--------|

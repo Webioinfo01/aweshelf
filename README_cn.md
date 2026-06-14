@@ -21,10 +21,11 @@
   </p>
 </div>
 
+## Powered by aweshelf
 
-> 收藏、分类、恢复 AI 编程会话，支持 aweswitch 配置恢复。
+- **[aweswitch](https://github.com/Webioinfo01/aweswitch)** — Agent profile 切换器。用不同 API 端点、Token 和模型启动会话。
 
-aweshelf 可以保存你常用的 Claude Code 和 Codex 会话，用分类标记，并快速恢复——包括 bookmark 时的 aweswitch 配置（API 端点、模型、Token）。
+  aweswitch 管理你如何**启动**会话；aweshelf 管理你如何**记住**它们。用 `aweswitch -c` 启动时自动收藏，用 `aweshelf resume` 恢复时还原相同配置。
 
 ## 安装
 
@@ -112,6 +113,23 @@ aweshelf browse
 
 ![aweshelf VS Code 侧边栏](resources/image/example4.png)
 
+### 配合 aweswitch 自动收藏
+
+如果你使用 [aweswitch](https://github.com/Webioinfo01/aweswitch) 管理配置，可以在启动会话时自动收藏：
+
+```bash
+aweswitch -c                    # 启动 + 自动收藏
+aweswitch -c --profile cc-glm   # 指定配置启动 + 自动收藏
+```
+
+之后用相同配置恢复：
+
+```bash
+aweshelf resume aweshelf_0001   # 用存储的配置恢复
+```
+
+aweshelf 只能在事后收藏会话；aweswitch 弥补了这个短板——会话启动即保存，无需手动执行 `aweshelf bookmark`。
+
 也可以直接调用 CLI 命令：
 
 ```bash
@@ -148,7 +166,7 @@ aweshelf search "auth"               # 搜索书签
 ## 命令
 
 ```bash
-aweshelf bookmark [SESSION_ID] [-t TITLE] [-c CATEGORY] [--profile PROFILE] [--current] [--verbose]
+aweshelf bookmark [SESSION_ID] [-t TITLE] [-c CATEGORY] [--profile PROFILE] [--current] [--verbose] [--no-interactive]
 aweshelf list [-c CATEGORY] [-p PROVIDER]
 aweshelf search QUERY              # 搜索标题、分类、会话ID、项目路径、首条提示词、配置
 aweshelf recent [-n COUNT]
@@ -163,7 +181,7 @@ aweshelf help [COMMAND]
 ## 浏览模式 (TUI)
 
 `aweshelf browse` 打开交互式 TUI，左侧为书签表格，右侧为详情面板。
-`aweshelf bookmark` 会标记已经收藏的会话，并可在确认后更新已有 bookmark。使用 `aweshelf bookmark --current` 可以确认并保存当前项目最近的会话，不打开会话选择列表。交互收藏时会提示填写标题、分类和 Claude aweswitch profile；未配置 aweswitch 时会跳过 profile 选择。
+`aweshelf bookmark` 会标记已经收藏的会话，并可在确认后更新已有 bookmark。使用 `aweshelf bookmark --current` 可以确认并保存当前项目最近的会话，不打开会话选择列表。交互收藏时会提示填写标题、分类和 Claude aweswitch profile；未配置 aweswitch 时会跳过 profile 选择。使用 `--no-interactive` 可跳过所有提示——适用于 agent 和脚本场景，仅使用默认值或传入的参数创建书签。
 
 | 按键 | 操作 |
 |------|------|

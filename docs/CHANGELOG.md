@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+Non-interactive bookmarking for agents and scripting.
+
+### Highlights
+
+- `bookmark --no-interactive` — skip all prompts; use defaults or passed values only. Designed for agent and script usage where prompts would block.
+- Fix: `bookmark <SESSION_ID>` no longer triggers category prompt when `-c` is not provided (defaults to empty).
+
 ## v0.1.7
 
 Better list output and category-as-view model.

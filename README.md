@@ -175,7 +175,30 @@ aweshelf edit BOOKMARK_ID [-t TITLE] [-c CATEGORY] [--profile PROFILE]
 aweshelf rm BOOKMARK_ID [--force]
 aweshelf resume BOOKMARK_ID [--profile PROFILE] [--raw] [--dry-run]
 aweshelf browse
+aweshelf self-update [--check]
 aweshelf help [COMMAND]
+```
+
+## Self-Update
+
+aweshelf checks PyPI for newer versions in the background on each run. If an update is available, a reminder is printed to stderr after the command finishes.
+
+To update manually:
+
+```bash
+aweshelf self-update
+```
+
+To check without updating:
+
+```bash
+aweshelf self-update --check
+```
+
+To disable the background check:
+
+```bash
+export AWESHELF_NO_UPDATE_CHECK=1
 ```
 
 ## Browse (TUI)

@@ -175,7 +175,30 @@ aweshelf edit BOOKMARK_ID [-t TITLE] [-c CATEGORY] [--profile PROFILE]
 aweshelf rm BOOKMARK_ID [--force]
 aweshelf resume BOOKMARK_ID [--profile PROFILE] [--raw] [--dry-run]
 aweshelf browse
+aweshelf self-update [--check]
 aweshelf help [COMMAND]
+```
+
+## 自动更新
+
+aweshelf 每次运行时会在后台检查 PyPI 是否有新版本。如果有更新，会在命令执行完毕后在 stderr 输出提醒。
+
+手动更新：
+
+```bash
+aweshelf self-update
+```
+
+仅检查不更新：
+
+```bash
+aweshelf self-update --check
+```
+
+禁用后台检查：
+
+```bash
+export AWESHELF_NO_UPDATE_CHECK=1
 ```
 
 ## 浏览模式 (TUI)

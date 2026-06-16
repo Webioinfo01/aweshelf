@@ -21,12 +21,6 @@
   </p>
 </div>
 
-## Powered by aweshelf
-
-- **[aweswitch](https://github.com/Webioinfo01/aweswitch)** — Agent profile switcher. Launch sessions with different API endpoints, tokens, and models.
-
-  aweswitch manages how you **launch** sessions; aweshelf manages how you **remember** them. Use `aweswitch -c` to auto-bookmark at launch, and `aweshelf resume` to restore with the same profile later.
-
 ## Install
 
 ### Ask an AI agent
@@ -68,6 +62,8 @@ aweshelf is powered by two companion tools:
 
 - **[aweskill](https://github.com/Webioinfo01/aweskill)** — CLI-first skill package manager for AI agents. Handles skill installation, updates, and projection across 47+ coding agents.
 - **[aweswitch](https://github.com/mugpeng/aweswitch)** — Agent profile switcher. Lets you launch sessions with different API endpoints, tokens, and models. aweshelf stores aweswitch profiles in bookmarks so sessions restore with the right config.
+
+aweswitch manages how you **launch** sessions; aweshelf manages how you **remember** them. Use `aweswitch -c` to auto-bookmark at launch, and `aweshelf resume` to restore with the same profile later.
 
 ## Usage
 

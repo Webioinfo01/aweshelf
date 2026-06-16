@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.1.9
+
+Self-update command and background update checking.
+
+### Highlights
+
+- Added `aweshelf self-update` command with `--check` flag
+- Background update check on each run with 24h cooldown
+- Set `AWESHELF_NO_UPDATE_CHECK=1` to disable
+
 ## v0.1.8
 
 Non-interactive bookmarking for agents and scripting.

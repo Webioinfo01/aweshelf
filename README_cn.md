@@ -20,13 +20,6 @@
     <img src="https://img.shields.io/github/stars/Webioinfo01/aweshelf?style=flat-square" alt="GitHub stars">
   </p>
 </div>
-
-## Powered by aweshelf
-
-- **[aweswitch](https://github.com/Webioinfo01/aweswitch)** — Agent profile 切换器。用不同 API 端点、Token 和模型启动会话。
-
-  aweswitch 管理你如何**启动**会话；aweshelf 管理你如何**记住**它们。用 `aweswitch -c` 启动时自动收藏，用 `aweshelf resume` 恢复时还原相同配置。
-
 ## 安装
 
 ### 让 AI agent 安装

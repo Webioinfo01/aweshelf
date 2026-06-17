@@ -135,9 +135,9 @@ Replace `<skill-directory>` with the path from step B1.
 
 ## Final Step (both options)
 
-After setup, the agent needs to be restarted to pick up the new skill. Tell the user:
+After setup, tell the user to invoke skills (`/` in Claude Code, `$` in Codex, or the equivalent in other agents) and check if `aweshelf` appears in the list. If it does, the skill is ready to use immediately. If not, the user should restart the agent.
 
-> aweshelf is installed. Please restart this agent to activate the aweshelf skill. After restart, you can ask me things like:
+> aweshelf is installed. Invoke skills (type `/` or `$` depending on your agent) and look for `aweshelf` — if it appears, you're good to go. If not, restart the agent. Then you can ask me things like:
 >
 > - "Bookmark the current session."
 > - "List my bookmarks in the backend category."
@@ -145,7 +145,7 @@ After setup, the agent needs to be restarted to pick up the new skill. Tell the 
 
 If the user is speaking Chinese, use this version instead:
 
-> aweshelf 已安装。请重启当前 agent，以激活 aweshelf skill。重启后你可以继续问我，例如：
+> aweshelf 已安装。请调用 skills（输入 `/` 或 `$`，取决于你的 agent），看看列表中是否出现了 `aweshelf`。如果出现了，说明已就绪可以直接使用。如果没有，请重启 agent 后再试。然后你可以继续问我，例如：
 >
 > - "收藏当前会话。"
 > - "列出 backend 分类下的书签。"

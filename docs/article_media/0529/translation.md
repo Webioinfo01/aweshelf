@@ -67,7 +67,7 @@ pip install aweswitch
 
 ## 搭配 aweskill 和 aweswitch
 
-`aweshelf` 单独就能用。但如果加上 [Webioinfo](https://we.webioinfo.top/) 生态里的两个搭档，体验会更顺滑：
+`aweshelf` 单独就能用。但如果加上 [Webioinfo](https://www.webioinfo.top/) 生态里的两个搭档，体验会更顺滑：
 
 - **[aweskill](https://github.com/Webioinfo01/aweskill)** — 面向 47+ AI 编程 Agent 的 Skill 包管理器。把 `aweshelf` 作为 Skill 安装一次，你用的任何 Agent——Claude Code、Codex、Cursor、Gemini CLI——都能读取它的 SKILL.md 并操作 CLI，无需手动配置。把它想象成 Agent 技能的 `npm`。
 - **[aweswitch](https://github.com/mugpeng/aweswitch)** — 配置切换器，保存和恢复 API 配置。`aweshelf` 收藏会话时，会记录当时激活的 aweswitch 配置。恢复时，Agent 用完全相同的端点、模型和 Token 重启。
@@ -291,7 +291,7 @@ aweshelf edit aweshelf_0012 -t "DEG analysis — fixed batch effect" -c bioinfo
 
 ## 更多来自 Webioinfo
 
-`aweshelf` 是 [Webioinfo](https://we.webioinfo.top/) 生态的一部分——一系列面向 AI 辅助开发的工具：
+`aweshelf` 是 [Webioinfo](https://www.webioinfo.top/) 生态的一部分——一系列面向 AI 辅助开发的工具：
 
 - **[aweskill](https://aweskill.webioinfo.top/)** — 面向 47+ AI 编程 Agent 的 CLI Skill 包管理器。在 Claude Code、Codex、Cursor 等 Agent 之间安装、更新和投影 Skill。
 - **[awescholar](https://github.com/mugpeng/awescholar)** — 自动化科学文献检索。搜索、标注、过滤，用 LLM 流水线生成研究报告。

@@ -6,7 +6,7 @@
   <p>
     <a href="./README.md">English</a> ·
     <strong>简体中文</strong> ·
-    <a href="https://we.webioinfo.top/">Webioinfo</a>
+    <a href="https://www.webioinfo.top/">Webioinfo</a>
   </p>
   <p>
     <img src="https://img.shields.io/badge/version-0.1.9-7C3AED?style=flat-square" alt="Version">

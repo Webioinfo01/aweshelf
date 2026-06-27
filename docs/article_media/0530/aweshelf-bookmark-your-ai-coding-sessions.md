@@ -68,7 +68,7 @@ pip install aweswitch
 
 ## Pair with aweskill and aweswitch
 
-`aweshelf` works well on its own. But combined with two companion tools from the [Webioinfo](https://we.webioinfo.top/) ecosystem, the workflow gets even smoother:
+`aweshelf` works well on its own. But combined with two companion tools from the [Webioinfo](https://www.webioinfo.top/) ecosystem, the workflow gets even smoother:
 
 - **[aweskill](https://github.com/Webioinfo01/aweskill)** — a skill package manager for 47+ AI coding agents. Install `aweshelf` as a skill once, and any agent you use — Claude Code, Codex, Cursor, Gemini CLI — can read its SKILL.md and operate the CLI without manual setup. Think of it as `npm` for agent skills.
 - **[aweswitch](https://github.com/Webioinfo01/aweswitch)** — a profile switcher that saves and restores API configurations. When `aweshelf` bookmarks a session, it records which aweswitch profile was active. Resume later, and the agent restarts with the exact same endpoint, model, and token.
@@ -294,7 +294,7 @@ It does not try to be a platform. It does not sync to the cloud. It does not req
 
 ## More from Webioinfo
 
-`aweshelf` is part of the [Webioinfo](https://we.webioinfo.top/) ecosystem — a collection of tools for AI-assisted development:
+`aweshelf` is part of the [Webioinfo](https://www.webioinfo.top/) ecosystem — a collection of tools for AI-assisted development:
 
 - **[aweskill](https://aweskill.webioinfo.top/)** — CLI-first Skill package manager for 47+ AI coding agents. Install, update, and project Skills across Claude Code, Codex, Cursor, and more.
 - **[awescholar](https://github.com/Webioinfo01/awescholar)** — Automated scientific literature discovery. Search, annotate, filter, and generate research reports with LLM-powered pipelines.

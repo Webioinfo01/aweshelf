@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.2.0
+
+Beta status, funding support, and aweskill integration.
+
+### Highlights
+
+- Promoted status from alpha to beta
+- Added Support section with Ko-fi badge and WeChat funding QR code
+- Added `.github/FUNDING.yml` for GitHub Sponsor button
+- New: aweskill install option for skill management
+- Fix: replaced `we.webioinfo.top` with `www.webioinfo.top`
+- Synced Chinese README with English version
+
 ## v0.1.9
 
 Self-update command and background update checking.

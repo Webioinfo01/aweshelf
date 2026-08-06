@@ -9,6 +9,9 @@
     <a href="https://www.webioinfo.top/">Webioinfo</a>
   </p>
   <p>
+    <a href="https://ko-fi.com/mugpeng"><img src="https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee-FF5E5B?style=flat-square&logo=ko-fi&logoColor=white" alt="Ko-fi"></a>
+  </p>
+  <p>
     <img src="https://img.shields.io/badge/version-0.1.9-7C3AED?style=flat-square" alt="Version">
     <img src="https://img.shields.io/badge/python-%E2%89%A53.10-0EA5E9?style=flat-square" alt="Python">
   </p>
@@ -217,6 +220,20 @@ export AWESHELF_NO_UPDATE_CHECK=1
 | `q` | Quit |
 
 In edit mode: type to edit the active cell, `Delete` to clear it, `Tab`/`Right` to next field, `Shift+Tab`/`Left` to previous, `Up`/`Down` to move rows, `Enter` to save, `Esc` to exit.
+
+## Support
+
+If aweshelf saves you time, consider supporting it:
+
+- ⭐ Star the repo — it helps others find it.
+- ☕ [Ko-fi](https://ko-fi.com/mugpeng) — buy me a coffee.
+- 💬 WeChat — scan the QR code below.
+
+<p align="center">
+  <img src="assets/images/wechat-pay.jpg" alt="WeChat Pay" width="240">
+</p>
+
+> aweshelf is free and open source. Sponsors keep it maintained — thank you.
 
 ## Development
 

@@ -9,6 +9,9 @@
     <a href="https://www.webioinfo.top/">Webioinfo</a>
   </p>
   <p>
+    <a href="https://ko-fi.com/mugpeng"><img src="https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee-FF5E5B?style=flat-square&logo=ko-fi&logoColor=white" alt="Ko-fi"></a>
+  </p>
+  <p>
     <img src="https://img.shields.io/badge/version-0.1.9-7C3AED?style=flat-square" alt="Version">
     <img src="https://img.shields.io/badge/python-%E2%89%A53.10-0EA5E9?style=flat-square" alt="Python">
   </p>
@@ -214,6 +217,20 @@ export AWESHELF_NO_UPDATE_CHECK=1
 | `q` | 退出 |
 
 编辑模式：输入文字编辑当前单元格，`Delete` 清空当前单元格，`Tab`/`Right` 切换下一个字段，`Shift+Tab`/`Left` 切换上一个，`Up`/`Down` 切换行，`Enter` 保存，`Esc` 退出。
+
+## 赞助与支持
+
+如果 aweshelf 帮到了你，欢迎支持一下：
+
+- ⭐ 给项目点个 Star — 让更多人看到它。
+- ☕ [Ko-fi](https://ko-fi.com/mugpeng) — 请我喝杯咖啡。
+- 💬 微信 — 扫描下方收款码。
+
+<p align="center">
+  <img src="assets/images/wechat-pay.jpg" alt="微信收款码" width="240">
+</p>
+
+> aweshelf 是免费开源的，你的支持让它持续维护下去 — 谢谢。
 
 ## 开发
 

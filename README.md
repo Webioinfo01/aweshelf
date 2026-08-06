@@ -16,7 +16,7 @@
     <img src="https://img.shields.io/badge/python-%E2%89%A53.10-0EA5E9?style=flat-square" alt="Python">
   </p>
   <p>
-    <img src="https://img.shields.io/badge/status-alpha-c96a3d?style=flat-square" alt="Status">
+    <img src="https://img.shields.io/badge/status-beta-c96a3d?style=flat-square" alt="Status">
     <img src="https://img.shields.io/badge/install-pip-22C55E?style=flat-square" alt="pip install">
     <img src="https://img.shields.io/badge/platform-terminal-334155?style=flat-square" alt="Platform">
     <img src="https://img.shields.io/pepy/dt/aweshelf?style=flat-square" alt="PyPI downloads">

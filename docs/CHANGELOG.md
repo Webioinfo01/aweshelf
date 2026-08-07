@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.2.1
+
+Hardening release inspired by aweswitch: a version-drift fix, a more robust update check, a clean error boundary for a corrupt bookmark store, and internal deduplication.
+
+### Highlights
+
+- Fix: `__version__` is now read from installed package metadata instead of a hardcoded value. The published 0.2.0 was reporting 0.1.9, producing a permanent, un-clearable "update available" nag.
+- Fix: version comparison now parses pre-release and post-release versions (e.g. `0.2.0rc1`, `1.0.0.post1`) instead of silently treating them as `(0,)`.
+- Fix: a corrupt `bookmarks.json` now exits with a readable `aweshelf: ...` message instead of a Python traceback.
+- Change: `textual` is now an optional `[tui]` extra — run `pip install 'aweshelf[tui]'` for the `browse` command. Plain installs no longer pull in the TUI dependency tree.
+- Refactor: removed the dead `lib/resume.py` shim and deduplicated the resume print/run logic between the `resume` command and `browse`.
+
 ## v0.2.0
 
 Beta status, funding support, and aweskill integration.

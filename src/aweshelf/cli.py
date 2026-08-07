@@ -15,6 +15,7 @@ from aweshelf.commands.show import show_command, edit_command, rm_command
 from aweshelf.commands.resume import resume_command
 from aweshelf.commands.browse import browse_command
 from aweshelf.commands.sessions import sessions_command
+from aweshelf.lib.store import BookmarkStoreError
 
 
 @click.group(
@@ -71,6 +72,9 @@ def main(argv=None):
     get_reminder = check_async(sys.argv[1:] if argv is None else argv)
     try:
         return cli.main(args=argv, prog_name="aweshelf")
+    except BookmarkStoreError as exc:
+        # Corrupt bookmark store: surface a readable message instead of a traceback.
+        raise SystemExit(f"aweshelf: {exc}")
     finally:
         reminder = get_reminder()
         if reminder:

@@ -52,6 +52,14 @@ def format_resume_target(target: ResumeTarget) -> str:
     return f"cd {shlex.quote(str(target.cwd))} && {command}"
 
 
+def echo_resume_plan(bookmark: Bookmark, target: ResumeTarget) -> None:
+    """Print the resume warning and command line. Shared by --dry-run and execute."""
+    if target.warning:
+        click.echo(f"Warning: {target.warning}", err=True)
+    click.echo(f"Resuming {bookmark.id} — {bookmark.title}")
+    click.echo(f"  $ {format_resume_target(target)}")
+
+
 def run_resume_target(target: ResumeTarget) -> None:
     original_cwd = os.getcwd()
     try:
@@ -63,13 +71,20 @@ def run_resume_target(target: ResumeTarget) -> None:
         raise
 
 
-def execute_resume(bookmark: Bookmark, profile_override: str | None = None, raw: bool = False) -> None:
-    """Build and run a resume target with click-friendly error handling."""
-    target = build_resume_target(bookmark, profile_override=profile_override, raw=raw)
-    if target.warning:
-        click.echo(f"Warning: {target.warning}", err=True)
-    click.echo(f"Resuming {bookmark.id} — {bookmark.title}")
-    click.echo(f"  $ {format_resume_target(target)}")
+def execute_resume(
+    bookmark: Bookmark,
+    profile_override: str | None = None,
+    raw: bool = False,
+    target: ResumeTarget | None = None,
+) -> None:
+    """Build (if needed) and run a resume target with click-friendly error handling.
+
+    Pass ``target`` when the caller has already built one — e.g. the resume
+    command builds it up front for --json/--dry-run inspection — to avoid a
+    redundant rebuild.
+    """
+    target = target or build_resume_target(bookmark, profile_override=profile_override, raw=raw)
+    echo_resume_plan(bookmark, target)
     try:
         run_resume_target(target)
     except FileNotFoundError as exc:

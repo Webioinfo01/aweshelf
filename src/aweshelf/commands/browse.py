@@ -11,7 +11,9 @@ def browse_command():
     try:
         from aweshelf.tui.app import BookmarkBrowser
     except ImportError as exc:
-        raise click.ClickException("textual is required for browse. Install with: pip install textual") from exc
+        raise click.ClickException(
+            "textual is required for browse. Install with: pip install 'aweshelf[tui]'"
+        ) from exc
 
     app = BookmarkBrowser()
     result = app.run()

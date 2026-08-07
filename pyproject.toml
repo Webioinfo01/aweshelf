@@ -8,7 +8,7 @@ version = "0.2.0"
 description = "Bookmark, categorize, and restore AI coding sessions with aweswitch profiles."
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["click>=8.1", "textual>=0.40"]
+dependencies = ["click>=8.1"]
 authors = [
   { name = "Peng" }
 ]
@@ -24,6 +24,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
+tui = ["textual>=0.40"]
 dev = ["pytest", "ruff"]
 
 [project.scripts]

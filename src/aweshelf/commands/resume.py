@@ -7,8 +7,9 @@ import click
 from aweshelf.lib.resume_target import (
     ResumeError,
     build_resume_target,
+    echo_resume_plan,
+    execute_resume,
     format_resume_target,
-    run_resume_target,
 )
 from aweshelf.lib.store import find_bookmark
 
@@ -41,17 +42,8 @@ def resume_command(bookmark_id, profile, raw, dry_run, as_json):
         }, indent=2, ensure_ascii=False))
         return
 
-    if target.warning:
-        click.echo(f"Warning: {target.warning}", err=True)
-    click.echo(f"Resuming {b.id} — {b.title}")
-    click.echo(f"  $ {format_resume_target(target)}")
-
     if dry_run:
+        echo_resume_plan(b, target)
         return
 
-    try:
-        run_resume_target(target)
-    except FileNotFoundError as exc:
-        raise click.ClickException(f"command not found: {target.argv[0]}") from exc
-    except OSError as exc:
-        raise click.ClickException(f"failed to run {target.argv[0]}: {exc}") from exc
+    execute_resume(b, target=target)
